@@ -881,18 +881,21 @@ textarea.notiz {
   margin: 0;
 }
 
-/* Miniatur im Ausweich-Dialog */
+/* Miniatur im Ausweich-Dialog.
+   display:none statt width:0 — .wahl ist ein Flex-Container mit gap, ein
+   nullbreites Element würde trotzdem den vollen Abstand erzeugen und alle
+   Zeilen ohne Foto einrücken. */
 .wahl-mini {
-  width: 0;
+  display: none;
+}
+
+.wahl-mini-belegt {
+  display: block;
+  width: 58px;
   height: 44px;
   border-radius: 8px;
   overflow: hidden;
   flex-shrink: 0;
-  transition: width 0.15s;
-}
-
-.wahl-mini-belegt {
-  width: 58px;
 }
 
 .wahl-mini img {
