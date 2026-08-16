@@ -35,14 +35,20 @@ export function fotoAufnehmen(uebungId, art, fertig) {
       fertig?.();
     } catch (e) {
       console.error(e);
-      alert(
-        'Das Foto konnte nicht gespeichert werden.\n\n' +
-          'Falls du Safari im privaten Modus benutzt: Dort ist der Speicher gesperrt.'
-      );
+      alert(speicherFehlerText(e));
     } finally {
       anzeige.remove();
     }
   });
+
+  // Bricht der Nutzer den Auswahldialog ab, feuert 'change' auf iOS nicht
+  // zuverlässig — das Feld bliebe für immer im Dokument hängen. Beim nächsten
+  // Fokus der Seite aufräumen, falls bis dahin nichts gewählt wurde.
+  window.addEventListener(
+    'focus',
+    () => setTimeout(() => { if (!feld.files?.length) feld.remove(); }, 1000),
+    { once: true }
+  );
 
   feld.click();
 }
@@ -96,6 +102,26 @@ export async function fotoAnzeigen(uebungId, art, uebungName, fertig) {
   });
 
   document.body.appendChild(hinter);
+}
+
+/**
+ * Unterscheidet die beiden realistischen Ursachen. "Speicher ist voll" und
+ * "privater Modus" verlangen völlig verschiedene Reaktionen — eine Sammelmeldung
+ * schickt dich in die falsche Richtung.
+ */
+function speicherFehlerText(fehler) {
+  if (fehler?.name === 'QuotaExceededError') {
+    return (
+      'Der Speicher ist voll — das Foto wurde nicht gesichert.\n\n' +
+      'Unter „Mehr" siehst du, wie viel die Fotos belegen. Lösch ein paar, die du ' +
+      'nicht mehr brauchst, oder gib auf dem iPhone Speicher frei.'
+    );
+  }
+  return (
+    'Das Foto konnte nicht gespeichert werden.\n\n' +
+    'Falls du Safari im privaten Modus benutzt: Dort ist der Speicher gesperrt. ' +
+    'Bitte im normalen Modus öffnen und die App über das Home-Symbol starten.'
+  );
 }
 
 /** Kurze Rückmeldung, während das Verkleinern läuft — das dauert spürbar. */

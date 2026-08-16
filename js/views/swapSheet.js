@@ -78,7 +78,15 @@ export function ausweichDialogOeffnen({ muster, aktuelleId, beiWahl }) {
    */
   async function miniaturenNachladen() {
     for (const feld of hinter.querySelectorAll('[data-mini]')) {
-      const url = await fotoUrl(feld.dataset.mini, 'geraet');
+      // Abbrechen, sobald der Dialog zu ist — sonst werkeln wir an einem
+      // abgehängten Baum weiter und erzeugen Object-URLs, die niemand sieht.
+      if (!hinter.isConnected) return;
+      let url = null;
+      try {
+        url = await fotoUrl(feld.dataset.mini, 'geraet');
+      } catch (e) {
+        console.warn(`Miniatur ${feld.dataset.mini} nicht ladbar`, e);
+      }
       if (url) {
         feld.innerHTML = `<img src="${url}" alt="" loading="lazy" />`;
         feld.classList.add('wahl-mini-belegt');

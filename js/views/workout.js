@@ -282,7 +282,15 @@ async function fotoFelderFuellen(abschnitt) {
   const felder = abschnitt.querySelectorAll('[data-foto-slot]');
   for (const feld of felder) {
     const { fotoSlot: uebungId, fotoArt: art } = feld.dataset;
-    const url = await fotoUrl(uebungId, art);
+    // Je Feld einzeln absichern: Ein Fehler beim einen Bild darf die Schleife
+    // nicht abbrechen, sonst bleiben alle folgenden Felder leer — auch die,
+    // hinter denen ein Foto liegt.
+    let url = null;
+    try {
+      url = await fotoUrl(uebungId, art);
+    } catch (e) {
+      console.warn(`Foto ${uebungId}:${art} nicht ladbar`, e);
+    }
     if (url) {
       feld.classList.add('foto-feld-belegt');
       feld.innerHTML = `<img src="${url}" alt="" loading="lazy" />

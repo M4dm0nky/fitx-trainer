@@ -62,7 +62,13 @@ function transaktion(modus, arbeit) {
         } catch (e) {
           return ablehnen(e);
         }
-        tx.oncomplete = () => erfuellen(ergebnis?.result ?? ergebnis);
+        // Nur .result, KEIN Rückfall auf ergebnis selbst: Ein fehlender Schlüssel
+        // liefert laut IndexedDB-Spezifikation result === undefined bei
+        // erfolgreicher Anfrage. Ein "?? ergebnis" würde daraus das IDBRequest-
+        // Objekt machen — truthy, rutscht durch jede if(!blob)-Prüfung und lässt
+        // URL.createObjectURL() werfen. Alle Aufrufer übergeben ein IDBRequest,
+        // ein Rückfall wird also nirgends gebraucht.
+        tx.oncomplete = () => erfuellen(ergebnis?.result);
         tx.onerror = () => ablehnen(tx.error);
         tx.onabort = () => ablehnen(tx.error);
       })
@@ -119,14 +125,16 @@ export async function fotosZaehlen() {
 
 /** Alle Fotos als { schluessel: dataURL } — so wandern sie in die Backup-Datei. */
 export async function alleFotosAlsDataUrls() {
-  let schluessel = [];
-  let blobs = [];
+  let paare = [];
   try {
-    schluessel = (await transaktion('readonly', (s) => s.getAllKeys())) || [];
-    blobs = (await transaktion('readonly', (s) => s.getAll())) || [];
+    // Schlüssel und Werte in EINER Transaktion holen. Zwei getrennte Abfragen
+    // würden sich darauf verlassen, dass die Reihenfolge zwischen beiden Aufrufen
+    // stabil bleibt — hier zwar gegeben, aber eine Annahme, die man nicht braucht.
+    paare = await transaktionMehrfach('readonly', (s) => [s.getAllKeys(), s.getAll()]);
   } catch {
     return {};
   }
+  const [schluessel = [], blobs = []] = paare;
   const ergebnis = {};
   for (let i = 0; i < schluessel.length; i++) {
     if (blobs[i]) ergebnis[schluessel[i]] = await blobTextUrl(blobs[i]);
@@ -134,17 +142,43 @@ export async function alleFotosAlsDataUrls() {
   return ergebnis;
 }
 
-/** Schreibt Fotos aus einem Backup zurück. Bestehende werden ersetzt. */
+/**
+ * Schreibt Fotos aus einem Backup zurück. Bestehende werden ersetzt.
+ *
+ * Alle Schreibvorgänge laufen in EINER Transaktion: Bricht einer ab (Speicher
+ * voll), rollt IndexedDB die gesamte Transaktion zurück. Andernfalls bliebe ein
+ * halb eingespielter Bestand übrig, der weder zum alten noch zum neuen Backup passt.
+ */
 export async function fotosAusDataUrls(objekt) {
   if (!objekt || typeof objekt !== 'object') return 0;
-  let n = 0;
-  for (const [schluessel, dataUrl] of Object.entries(objekt)) {
-    const blob = dataUrlZuBlob(dataUrl);
-    if (!blob) continue;
-    await transaktion('readwrite', (s) => s.put(blob, schluessel));
-    n++;
-  }
-  return n;
+  const eintraege = Object.entries(objekt)
+    .map(([schluessel, dataUrl]) => [schluessel, dataUrlZuBlob(dataUrl)])
+    .filter(([, blob]) => blob);
+  if (!eintraege.length) return 0;
+
+  await transaktionMehrfach('readwrite', (s) =>
+    eintraege.map(([schluessel, blob]) => s.put(blob, schluessel))
+  );
+  return eintraege.length;
+}
+
+/** Wie transaktion(), aber für mehrere Anfragen in einer gemeinsamen Transaktion. */
+function transaktionMehrfach(modus, arbeit) {
+  return db().then(
+    (datenbank) =>
+      new Promise((erfuellen, ablehnen) => {
+        const tx = datenbank.transaction(SPEICHER, modus);
+        let anfragen;
+        try {
+          anfragen = arbeit(tx.objectStore(SPEICHER));
+        } catch (e) {
+          return ablehnen(e);
+        }
+        tx.oncomplete = () => erfuellen(anfragen.map((a) => a?.result));
+        tx.onerror = () => ablehnen(tx.error);
+        tx.onabort = () => ablehnen(tx.error);
+      })
+  );
 }
 
 function blobTextUrl(blob) {
