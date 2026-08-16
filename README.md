@@ -124,6 +124,25 @@ Gerät bleibt also nur der Blick auf den Fortschrittsbalken.
 
 ---
 
+## Dokumentation
+
+Diese README beantwortet „wie benutze ich das?". Wer die App **ändern oder
+erweitern** will, findet die Grundlagen in [docs/](docs/):
+
+| Dokument | Inhalt |
+|---|---|
+| [00-projektstatus.md](docs/00-projektstatus.md) | Aktueller Stand, was funktioniert, **was ungetestet ist** — der Einstiegspunkt |
+| [01-zweck-und-hintergrund.md](docs/01-zweck-und-hintergrund.md) | Warum es die App gibt, warum die Pläne so aussehen (inkl. Volumenrechnung) |
+| [02-architektur.md](docs/02-architektur.md) | Modulkarte, Datenmodell, Render-Zyklus, Slots statt Geräte |
+| [03-unantastbare-regeln.md](docs/03-unantastbare-regeln.md) | **Vor jeder Änderung lesen** — vier Invarianten mit Begründung |
+| [04-weiterbauen.md](docs/04-weiterbauen.md) | Lokal starten, testen, ausliefern, Stolpersteine, Entscheidungslog |
+
+Der wichtigste Hinweis daraus vorweg: Mehrere Entscheidungen im Code sehen aus wie
+Nachlässigkeiten und sind keine. Ein `user-scalable=no` im Viewport-Tag wäre in fünf
+Sekunden ergänzt — und würde eine Kernanforderung zerstören.
+
+---
+
 ## Lokal testen
 
 ```bash
