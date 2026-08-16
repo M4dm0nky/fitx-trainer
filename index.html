@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+
+    <!-- KERNANFORDERUNG: Pinch-Zoom muss funktionieren.
+         Deshalb bewusst OHNE user-scalable=no und OHNE maximum-scale.
+         Beides würde das Zoomen mit zwei Fingern abschalten — der häufigste
+         Grund, warum Web-Apps auf dem iPhone unbrauchbar werden, wenn man
+         etwas nicht lesen kann. Diese Zeile bitte nicht "optimieren". -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <title>FitX Trainer</title>
+    <meta name="description" content="Trainingsplaner für FitX — zwei Oberkörperpläne im Wechsel, mit Gewichtsprotokoll und Ausweichgeräten." />
+    <meta name="theme-color" content="#0d0d10" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f5f5f2" media="(prefers-color-scheme: light)" />
+
+    <!-- Homescreen-Shortcut: startet ohne Safari-Adressleiste -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FitX Trainer" />
+    <link rel="apple-touch-icon" href="icons/icon-180.png" />
+    <link rel="icon" href="icons/icon-180.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+
+    <link rel="stylesheet" href="css/app.css" />
+  </head>
+  <body>
+    <header class="kopf">
+      <h1 id="titel">FitX Trainer</h1>
+      <div id="kopf-aktion"></div>
+    </header>
+
+    <main id="app">
+      <p class="leer">Wird geladen …</p>
+    </main>
+
+    <noscript>
+      <p class="leer">
+        Diese App braucht JavaScript. Bitte im Safari unter Einstellungen aktivieren.
+      </p>
+    </noscript>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

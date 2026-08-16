@@ -1,0 +1,807 @@
+/* FitX Trainer — Oberfläche
+ *
+ * Entwurfsgrundsätze, alle aus der Situation "verschwitzt zwischen zwei Sätzen,
+ * eine Hand frei, Studio hell oder düster" abgeleitet:
+ *   - Große Schrift, hoher Kontrast
+ *   - Antippbare Flächen mindestens 44 px
+ *   - Eingabefelder mindestens 16 px, sonst zoomt Safari beim Antippen selbst herein
+ *   - NIRGENDWO touch-action: none — das würde den Pinch-Zoom abschalten
+ */
+
+:root {
+  --bg: #f5f5f2;
+  --flaeche: #ffffff;
+  --flaeche-2: #eeeeea;
+  --text: #16161a;
+  --gedaempft: #66666f;
+  --rand: #dcdcd8;
+  --akzent: #c2410c;
+  --akzent-text: #ffffff;
+  --gut: #15803d;
+  --gut-flaeche: #dcfce7;
+  --warn: #a16207;
+
+  --radius: 14px;
+  --spur: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.05);
+  --sicher-unten: env(safe-area-inset-bottom, 0px);
+  --sicher-oben: env(safe-area-inset-top, 0px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d0d10;
+    --flaeche: #191920;
+    --flaeche-2: #23232c;
+    --text: #f1f1f4;
+    --gedaempft: #9797a3;
+    --rand: #2e2e39;
+    --akzent: #ff6b35;
+    --akzent-text: #16161a;
+    --gut: #4ade80;
+    --gut-flaeche: #14321f;
+    --warn: #fbbf24;
+    --spur: 0 1px 2px rgb(0 0 0 / 0.4);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  /* Verhindert, dass Safari beim Drehen die Schrift eigenmächtig vergrößert,
+     ohne dabei den manuellen Pinch-Zoom einzuschränken. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* ── Grundgerüst ─────────────────────────────────────────────────────────── */
+
+.kopf {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: calc(var(--sicher-oben) + 10px) 16px 10px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.6) blur(12px);
+  border-bottom: 1px solid var(--rand);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+}
+
+.kopf h1 {
+  font-size: 19px;
+  font-weight: 650;
+  margin: 0;
+  letter-spacing: -0.01em;
+  flex: 1;
+  min-width: 0;
+}
+
+.kopf .unterzeile {
+  display: block;
+  font-size: 13px;
+  font-weight: 450;
+  color: var(--gedaempft);
+  letter-spacing: 0;
+}
+
+main {
+  padding: 16px 16px calc(var(--sicher-unten) + 40px);
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+body.timer-aktiv main {
+  padding-bottom: calc(var(--sicher-unten) + 120px);
+}
+
+/* ── Knöpfe ──────────────────────────────────────────────────────────────── */
+
+.knopf {
+  font: inherit;
+  font-weight: 600;
+  min-height: 48px;
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--rand);
+  background: var(--flaeche);
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.knopf:active {
+  transform: scale(0.985);
+}
+
+.knopf-haupt {
+  background: var(--akzent);
+  color: var(--akzent-text);
+  border-color: transparent;
+  font-size: 18px;
+}
+
+.knopf-breit {
+  width: 100%;
+}
+
+.knopf-klein {
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 15px;
+}
+
+.knopf-still {
+  background: transparent;
+}
+
+.knopf-gefahr {
+  color: #dc2626;
+  border-color: #dc262655;
+}
+
+/* Der "Gerät belegt?"-Knopf. Bewusst deutlich sichtbar statt in einem Menü
+   versteckt: Im vollen Studio ist Ausweichen kein Sonderfall, sondern Alltag. */
+.knopf-tausch {
+  min-height: 44px;
+  padding: 8px 14px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid var(--akzent);
+  color: var(--akzent);
+  background: transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Karten ──────────────────────────────────────────────────────────────── */
+
+.karte {
+  background: var(--flaeche);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--spur);
+}
+
+.karte-kopf {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.karte-kopf-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.muster-label {
+  font-size: 13px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gedaempft);
+  margin-bottom: 3px;
+}
+
+.uebung-name {
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+.kategorie-marke {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 650;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--flaeche-2);
+  color: var(--gedaempft);
+  margin-top: 6px;
+  vertical-align: middle;
+}
+
+.vorgabe {
+  font-size: 14px;
+  color: var(--gedaempft);
+  margin-top: 6px;
+}
+
+/* ── "Letztes Mal" — die wichtigste Zeile der ganzen App ─────────────────── */
+
+.letztes-mal {
+  background: var(--flaeche-2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.letztes-mal .marke {
+  display: block;
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gedaempft);
+  margin-bottom: 2px;
+}
+
+.letztes-mal .werte {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.letztes-mal-neu {
+  border-left: 3px solid var(--warn);
+}
+
+.hinweis-warnung {
+  font-size: 14px;
+  color: var(--warn);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* ── Satz-Zeilen ─────────────────────────────────────────────────────────── */
+
+.satz {
+  display: grid;
+  grid-template-columns: 26px 1fr 1fr 64px 48px;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.satz-nr {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--gedaempft);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.feld {
+  position: relative;
+}
+
+.feld input {
+  /* 17px: unter 16px erzwingt Safari beim Antippen einen Auto-Zoom, aus dem
+     man ohne manuelles Rauszoomen nicht mehr herauskommt. */
+  font: 600 17px/1 -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 8px 12px 10px;
+  text-align: center;
+  border: 1px solid var(--rand);
+  border-radius: 10px;
+  background: var(--flaeche-2);
+  color: var(--text);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.feld input:focus {
+  outline: 2px solid var(--akzent);
+  outline-offset: -1px;
+  background: var(--flaeche);
+}
+
+.feld input::placeholder {
+  color: var(--gedaempft);
+  font-weight: 400;
+}
+
+.feld-marke {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gedaempft);
+  pointer-events: none;
+}
+
+.satz-haken {
+  min-height: 48px;
+  min-width: 48px;
+  border-radius: 10px;
+  border: 1px solid var(--rand);
+  background: var(--flaeche-2);
+  color: var(--gedaempft);
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.satz-erledigt .satz-haken {
+  background: var(--gut-flaeche);
+  border-color: var(--gut);
+  color: var(--gut);
+}
+
+.satz-erledigt .feld input {
+  border-color: var(--gut);
+}
+
+.satz-kopfzeile {
+  display: grid;
+  grid-template-columns: 26px 1fr 1fr 64px 48px;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gedaempft);
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+/* ── Aufklappbarer Hinweis ───────────────────────────────────────────────── */
+
+details.hinweis {
+  margin-top: 12px;
+  border-top: 1px solid var(--rand);
+  padding-top: 10px;
+}
+
+details.hinweis summary {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--akzent);
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+}
+
+details.hinweis summary::-webkit-details-marker {
+  display: none;
+}
+
+details.hinweis summary::before {
+  content: '›';
+  display: inline-block;
+  transition: transform 0.15s;
+  font-size: 20px;
+  line-height: 1;
+}
+
+details.hinweis[open] summary::before {
+  transform: rotate(90deg);
+}
+
+details.hinweis p {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--gedaempft);
+  margin: 8px 0 0;
+}
+
+.karte-fuss {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.textlink {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--akzent);
+  background: none;
+  border: none;
+  padding: 8px 0;
+  min-height: 40px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+/* ── Startbildschirm ─────────────────────────────────────────────────────── */
+
+.start-karte {
+  text-align: left;
+}
+
+.start-vorschlag {
+  font-size: 13px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--akzent);
+  margin-bottom: 4px;
+}
+
+.start-plan {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.start-meta {
+  color: var(--gedaempft);
+  font-size: 15px;
+  margin-top: 6px;
+}
+
+.start-uebungen {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0 0;
+  font-size: 15px;
+  color: var(--gedaempft);
+  line-height: 1.7;
+}
+
+.start-uebungen li::before {
+  content: '·';
+  margin-right: 8px;
+  color: var(--akzent);
+  font-weight: 700;
+}
+
+.merker {
+  border-left: 3px solid var(--warn);
+  background: var(--flaeche);
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+  border-top: 1px solid var(--rand);
+  border-right: 1px solid var(--rand);
+  border-bottom: 1px solid var(--rand);
+}
+
+.leer {
+  text-align: center;
+  color: var(--gedaempft);
+  padding: 32px 16px;
+  line-height: 1.6;
+}
+
+/* ── Ausweich-Dialog ─────────────────────────────────────────────────────── */
+
+.blatt-hinter {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.45);
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.blatt {
+  background: var(--bg);
+  width: 100%;
+  max-width: 640px;
+  max-height: 88vh;
+  border-radius: 20px 20px 0 0;
+  /* Nur dieser Container scrollt. Kein touch-action, kein preventDefault —
+     der Pinch-Zoom muss auch bei geöffnetem Dialog funktionieren. */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 16px calc(var(--sicher-unten) + 20px);
+  animation: blatt-hoch 0.22s ease-out;
+}
+
+@keyframes blatt-hoch {
+  from {
+    transform: translateY(16px);
+    opacity: 0.4;
+  }
+}
+
+.blatt-griff {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--rand);
+  margin: 8px auto 14px;
+}
+
+.blatt h2 {
+  font-size: 20px;
+  font-weight: 650;
+  margin: 0 0 4px;
+  letter-spacing: -0.015em;
+}
+
+.blatt-erklaerung {
+  font-size: 14px;
+  color: var(--gedaempft);
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.gruppe-titel {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gedaempft);
+  margin: 18px 0 8px;
+}
+
+.wahl {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 13px 14px;
+  min-height: 60px;
+  margin-bottom: 8px;
+  border: 1px solid var(--rand);
+  border-radius: 12px;
+  background: var(--flaeche);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wahl-aktiv {
+  border-color: var(--akzent);
+  border-width: 2px;
+  padding: 12px 13px;
+}
+
+.wahl-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.wahl-name {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+/* Die Historie steht direkt in der Auswahl — damit weißt du beim Hingehen
+   schon, was du auflegen musst. */
+.wahl-historie {
+  font-size: 13px;
+  color: var(--gedaempft);
+  font-variant-numeric: tabular-nums;
+  margin-top: 3px;
+  line-height: 1.35;
+}
+
+.wahl-historie-leer {
+  font-style: italic;
+}
+
+.wahl-haken {
+  color: var(--akzent);
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.blatt-knoepfe {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rand);
+}
+
+/* ── Pausentimer ─────────────────────────────────────────────────────────── */
+
+.timerbalken {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 35;
+  background: var(--flaeche);
+  border-top: 1px solid var(--rand);
+  padding: 12px 16px calc(var(--sicher-unten) + 12px);
+  box-shadow: 0 -4px 20px rgb(0 0 0 / 0.12);
+  overflow: hidden;
+}
+
+.timerbalken-fortschritt {
+  position: absolute;
+  inset: 0;
+  background: var(--akzent);
+  opacity: 0.13;
+  transform-origin: left;
+  transition: transform 0.2s linear;
+}
+
+.timerbalken-inhalt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.timerbalken-zeit {
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  flex: 1;
+}
+
+.timerbalken-knoepfe {
+  display: flex;
+  gap: 8px;
+}
+
+.timerbalken-fertig .timerbalken-zeit {
+  color: var(--gut);
+  font-size: 20px;
+}
+
+.timerbalken-fertig .timerbalken-fortschritt {
+  background: var(--gut);
+  opacity: 0.2;
+  transform: scaleX(1) !important;
+}
+
+/* ── Formulare (Plan-Editor, Einstellungen) ──────────────────────────────── */
+
+.formzeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rand);
+}
+
+.formzeile:last-child {
+  border-bottom: none;
+}
+
+.formzeile label {
+  flex: 1;
+  font-size: 16px;
+}
+
+.formzeile input[type='number'],
+.formzeile input[type='text'] {
+  font: 600 17px/1 -apple-system, system-ui, sans-serif;
+  width: 84px;
+  min-height: 44px;
+  padding: 10px;
+  text-align: center;
+  border: 1px solid var(--rand);
+  border-radius: 10px;
+  background: var(--flaeche-2);
+  color: var(--text);
+  -webkit-appearance: none;
+}
+
+.formzeile input[type='text'] {
+  width: auto;
+  flex: 1;
+  text-align: left;
+}
+
+textarea.notiz {
+  font: 17px/1.5 -apple-system, system-ui, sans-serif;
+  width: 100%;
+  min-height: 88px;
+  padding: 12px;
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  background: var(--flaeche);
+  color: var(--text);
+  resize: vertical;
+  -webkit-appearance: none;
+}
+
+.schalter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  cursor: pointer;
+}
+
+.schalter input {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--akzent);
+  flex-shrink: 0;
+}
+
+/* ── Verlauf ─────────────────────────────────────────────────────────────── */
+
+.verlauf-zeile {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rand);
+  font-size: 15px;
+}
+
+.verlauf-datum {
+  color: var(--gedaempft);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.verlauf-werte {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.diagramm {
+  width: 100%;
+  height: 120px;
+  display: block;
+  margin: 8px 0 16px;
+}
+
+.abschnitt-titel {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--gedaempft);
+  margin: 24px 0 10px;
+}
+
+.fliess {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.fliess > * {
+  flex: 1;
+  min-width: 140px;
+}
+
+.info-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--gedaempft);
+}
+
+.info-text strong {
+  color: var(--text);
+}
