@@ -48,6 +48,21 @@ pruefe('Trainingsansicht zeigt alle sieben Übungen und je "Gerät belegt?"', ()
   assert.ok(a.html.includes('Erstes Mal an diesem Gerät'));
 });
 
+pruefe('jede Übung hat einen Abschnitt "Gerät finden" mit zwei Fotoplätzen', () => {
+  const a = training.rendern('plan-a');
+  assert.equal((a.html.match(/data-fotos-fuer=/g) || []).length, 7);
+  assert.equal((a.html.match(/data-foto-slot=/g) || []).length, 14, '7 Übungen × 2 Fotos');
+  assert.ok(a.html.includes('data-foto-art="geraet"'));
+  assert.ok(a.html.includes('data-foto-art="einstellung"'));
+});
+
+pruefe('Erkennungstext steht in der Trainingsansicht', () => {
+  const a = training.rendern('plan-a');
+  // HS Chest Press ist Standard in Slot 1 — sein Erkennungstext muss sichtbar sein.
+  assert.ok(a.html.includes('Plate-Loaded'), 'Erkennungstext fehlt');
+  assert.ok(a.html.includes('Nicht verwechseln mit'), 'Abgrenzung fehlt');
+});
+
 pruefe('Eingabefelder haben passenden inputmode für die iPhone-Tastatur', () => {
   const a = training.rendern('plan-a');
   assert.ok(a.html.includes('inputmode="decimal"'), 'Gewicht braucht Dezimaltastatur');

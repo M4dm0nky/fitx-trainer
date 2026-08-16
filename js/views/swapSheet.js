@@ -12,6 +12,7 @@
 import { s } from '../store.js';
 import { alternativenFinden, KATEGORIEN, MUSTER, uebungFinden } from '../exercises.js';
 import { letzteLeistung, saetzeFormatieren, datumKurz } from '../history.js';
+import { fotoUrl } from '../photos.js';
 import { esc, beiKlick } from '../dom.js';
 
 /**
@@ -61,12 +62,28 @@ export function ausweichDialogOeffnen({ muster, aktuelleId, beiWahl }) {
     const aktiv = uebung.id === aktuelleId;
     return `
       <button type="button" class="wahl ${aktiv ? 'wahl-aktiv' : ''}" data-uebung="${esc(uebung.id)}">
+        <span class="wahl-mini" data-mini="${esc(uebung.id)}" aria-hidden="true"></span>
         <span class="wahl-text">
           <span class="wahl-name">${esc(uebung.name)}</span>
           <span class="wahl-historie">${historie}</span>
         </span>
         <span class="wahl-haken" aria-hidden="true">${aktiv ? '✓' : ''}</span>
       </button>`;
+  }
+
+  /**
+   * Trägt nachträglich die Gerätefotos ein. Der Dialog erscheint sofort und die
+   * Bilder tröpfeln ein — beim Ausweichen willst du die Liste sehen, nicht auf
+   * IndexedDB warten. Wer noch kein Foto hat, sieht einfach nichts Zusätzliches.
+   */
+  async function miniaturenNachladen() {
+    for (const feld of hinter.querySelectorAll('[data-mini]')) {
+      const url = await fotoUrl(feld.dataset.mini, 'geraet');
+      if (url) {
+        feld.innerHTML = `<img src="${url}" alt="" loading="lazy" />`;
+        feld.classList.add('wahl-mini-belegt');
+      }
+    }
   }
 
   function schliessen() {
@@ -95,6 +112,7 @@ export function ausweichDialogOeffnen({ muster, aktuelleId, beiWahl }) {
   });
 
   document.body.appendChild(hinter);
+  miniaturenNachladen();
 }
 
 /** Kurzform der Kategorie für die Marke auf der Übungskarte. */

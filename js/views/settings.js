@@ -2,7 +2,21 @@
 
 import { s, speichern, backupExportieren, backupImportieren, neueId } from '../store.js';
 import { MUSTER, KATEGORIEN, UEBUNGEN } from '../exercises.js';
+import { fotosZaehlen, groesseLesbar } from '../photos.js';
 import { esc, beiKlick } from '../dom.js';
+
+/**
+ * Trägt die Fotogröße nach. Steht bewusst direkt bei der Backup-Erklärung: Die Datei
+ * wird durch die Fotos deutlich größer, und das soll niemanden in iCloud überraschen.
+ */
+async function fotoStatistikNachtragen(wurzel) {
+  const el = wurzel.querySelector('#foto-statistik');
+  if (!el) return;
+  const { anzahl, bytes } = await fotosZaehlen();
+  el.textContent = anzahl
+    ? ` Dazu ${anzahl} Fotos (${groesseLesbar(bytes)}) — im Backup enthalten.`
+    : ' Noch keine Gerätefotos aufgenommen.';
+}
 
 export function rendern() {
   const zustand = s();
@@ -38,6 +52,7 @@ export function rendern() {
         </p>
         <p class="info-text">
           Gespeichert: <strong>${zustand.einheiten.length} Einheiten</strong> mit ${saetzeGesamt} Sätzen.
+          <span id="foto-statistik">Fotos werden gezählt …</span>
         </p>
         <div class="fliess" style="margin-top:12px">
           <button class="knopf" id="export">Backup erstellen</button>
@@ -134,7 +149,24 @@ export function rendern() {
 }
 
 function verdrahten(wurzel, zustand, neuZeichnen) {
-  wurzel.querySelector('#export')?.addEventListener('click', backupExportieren);
+  fotoStatistikNachtragen(wurzel);
+
+  wurzel.querySelector('#export')?.addEventListener('click', async (e) => {
+    // Das Einsammeln der Fotos dauert spürbar — ohne Rückmeldung tippt man zweimal.
+    const knopf = e.currentTarget;
+    const alt = knopf.textContent;
+    knopf.disabled = true;
+    knopf.textContent = 'Wird erstellt …';
+    try {
+      await backupExportieren();
+    } catch (err) {
+      console.error(err);
+      alert(`Backup fehlgeschlagen: ${err.message}`);
+    } finally {
+      knopf.disabled = false;
+      knopf.textContent = alt;
+    }
+  });
 
   const dateiFeld = wurzel.querySelector('#import');
   wurzel.querySelector('#import-knopf')?.addEventListener('click', () => dateiFeld.click());

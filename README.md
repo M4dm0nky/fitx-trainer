@@ -67,15 +67,52 @@ gemeinsamer Verlauf würde Sprünge zeigen, die nichts mit deiner Kraft zu tun h
 Standardmäßig gilt ein Wechsel **nur für heute**; der Plan bleibt unverändert. Wenn
 dir eine Variante grundsätzlich besser liegt, kannst du sie als Standard übernehmen.
 
+### „Gerät finden"
+
+Aufklappbar bei jeder Übung — gegen das Problem, dass „HS Iso-Lateral Row" vor 200
+Geräten nichts sagt.
+
+**Erkennungstext:** Bauform, wie die Last angehängt wird (Pin, Scheiben, Kurzhantel),
+und die Abgrenzung zum Verwechslungskandidaten. Das Wichtigste ist nicht „so sieht es
+aus", sondern „nicht verwechseln mit …" — denn das eigentliche Risiko ist, versehentlich
+ein anderes Gerät zu nehmen und damit die Historie zu verfälschen.
+
+Bewusst **keine** Standortangaben wie „hinten links": Die Aufteilung unterscheidet sich
+je Filiale, und eine falsche Wegbeschreibung ist schlimmer als gar keine. Ein Test
+verhindert, dass sich solche Formulierungen einschleichen.
+
+**Zwei eigene Fotos je Gerät:**
+
+- **Gerät** — zum Wiederfinden. Zeigt nebenbei, wo es in *deinem* Studio steht.
+- **Einstellung** — deine Sitzhöhe bzw. Hebelposition. Ersetzt Notizen wie
+  „Sitz Position 4" durch etwas Eindeutiges.
+
+Die Fotos hängen an der **Gerätevariante**, genau wie die Historie. Weichst du auf die
+Kurzhantel aus, siehst du das Kurzhantel-Foto. Im „Gerät belegt?"-Dialog erscheinen die
+Bilder als Miniaturen bei den Alternativen.
+
+Praktisch entstehen die Fotos nicht auf einen Schlag, sondern nebenbei: beim nächsten
+Training jeweils das Gerät fotografieren, an dem du gerade stehst.
+
+Fremde Produktfotos sind bewusst nicht enthalten — Bilder von Hammer Strength und
+Technogym sind urheberrechtlich geschützt und dürfen nicht in ein öffentliches Repo.
+
 ## Datensicherung
 
-Die Daten liegen im `localStorage` dieses Browsers. Das heißt konkret:
+Trainingsdaten liegen im `localStorage`, Fotos in `IndexedDB` — beides nur auf diesem
+Gerät. Das heißt konkret:
 
-- **Safari-Website-Daten löschen → Daten weg.**
+- **Safari-Website-Daten löschen → alles weg.**
 - **Gerätewechsel → Daten bleiben auf dem alten Gerät.**
 
 Deshalb: unter **Mehr → Backup erstellen** regelmäßig eine JSON-Datei erzeugen und in
-iCloud Drive oder Dropbox ablegen. Zurückspielen geht über **Backup einspielen**.
+iCloud Drive oder Dropbox ablegen. Die Fotos sind darin enthalten, die Datei wird dadurch
+einige MB groß. Zurückspielen geht über **Backup einspielen**.
+
+**Immer über das Homescreen-Icon starten, nicht über ein Safari-Lesezeichen.** Safari
+löscht bei normalen Websites nach sieben Tagen ohne Nutzung sämtliche Skript-Daten (ITP).
+Home-Screen-Web-Apps haben einen eigenen Nutzungszähler und sind davon ausgenommen — und
+bekommen bis zu 60 % des Gerätespeichers statt der üblichen 20 %.
 
 Nicht im privaten Safari-Modus benutzen — dort ist der Speicher gesperrt.
 
@@ -103,13 +140,17 @@ ES-Module brauchen HTTP — ein direkter Doppelklick auf `index.html` funktionie
 ```bash
 node test/logik.test.mjs      # Bibliothek, Pläne, Volumen, Historie je Variante
 node test/ansichten.test.mjs  # rendert jede Ansicht gegen einen simulierten Speicher
+node test/fotos.test.mjs      # Schlüsselbildung, Base64-Umwandlung fürs Backup
 ```
 
-Keine Abhängigkeiten, kein `npm install` — reines Node.
+Keine Abhängigkeiten, kein `npm install` — reines Node. 50 Prüfungen.
 
-Die wichtigste Prüfung darin: Wenn du an der Pin-Maschine 45 kg gemacht hast und
-danach auf die Kurzhantel ausweichst, darf dort **nicht** 45 kg auftauchen. Genau das
-wird explizit getestet.
+Die wichtigste darin: Wenn du an der Pin-Maschine 45 kg gemacht hast und danach auf die
+Kurzhantel ausweichst, darf dort **nicht** 45 kg auftauchen. Genau das wird explizit
+getestet.
+
+Nicht abgedeckt (braucht ein echtes Gerät): IndexedDB selbst, das Verkleinern über
+`<canvas>` und die EXIF-Drehung von iPhone-Hochformatfotos.
 
 ## Auf GitHub Pages veröffentlichen
 

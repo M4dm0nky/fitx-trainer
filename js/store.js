@@ -6,6 +6,7 @@
 // deine Trainingseinheiten und selbst angelegte Übungen.
 
 import { STANDARD_PLAENE } from './plans.js';
+import { alleFotosAlsDataUrls, fotosAusDataUrls } from './photos.js';
 
 const SCHLUESSEL = 'fitx-trainer-v1';
 
@@ -83,9 +84,15 @@ export function neueId(praefix = 'id') {
 
 // ── Backup ───────────────────────────────────────────────────────────────────
 
-/** Erzeugt eine JSON-Datei zum Download (auf dem iPhone landet sie im Teilen-Dialog). */
-export function backupExportieren() {
-  const daten = JSON.stringify(laden(), null, 2);
+/**
+ * Erzeugt eine JSON-Datei zum Download (auf dem iPhone landet sie im Teilen-Dialog).
+ *
+ * Die Fotos wandern als Data-URLs mit hinein. Dadurch wird die Datei spürbar größer,
+ * aber ein Backup, das die Fotos ausspart, wäre nach einem Gerätewechsel nur ein
+ * halbes Backup — und die Fotos sind Arbeit, die du im Studio investiert hast.
+ */
+export async function backupExportieren() {
+  const daten = JSON.stringify({ ...laden(), fotos: await alleFotosAlsDataUrls() }, null, 2);
   const blob = new Blob([daten], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -104,21 +111,29 @@ export function backupExportieren() {
 export function backupImportieren(datei) {
   return new Promise((erfuellen, ablehnen) => {
     const leser = new FileReader();
-    leser.onload = () => {
+    leser.onload = async () => {
       try {
         const daten = JSON.parse(leser.result);
         if (!daten || !Array.isArray(daten.einheiten) || !Array.isArray(daten.plaene)) {
           throw new Error('Das sieht nicht nach einem FitX-Trainer-Backup aus.');
         }
         const anzahl = daten.einheiten.length;
+        const fotos = Object.keys(daten.fotos || {}).length;
         const jetzt = laden().einheiten.length;
         const ok = confirm(
-          `Backup enthält ${anzahl} Trainingseinheiten.\n` +
-            `Aktuell gespeichert: ${jetzt}.\n\n` +
+          `Backup enthält ${anzahl} Trainingseinheiten` +
+            (fotos ? ` und ${fotos} Fotos` : ' (keine Fotos)') +
+            `.\nAktuell gespeichert: ${jetzt} Einheiten.\n\n` +
             'Der aktuelle Stand wird vollständig ersetzt. Fortfahren?'
         );
         if (!ok) return erfuellen(false);
-        zustand = migrieren(daten);
+
+        // Fotos zuerst — schlägt IndexedDB fehl, sind wenigstens die
+        // Trainingsdaten noch unangetastet und der Nutzer kann es erneut versuchen.
+        if (daten.fotos) await fotosAusDataUrls(daten.fotos);
+
+        const { fotos: _, ...ohneFotos } = daten; // Fotos gehören nicht in den localStorage
+        zustand = migrieren(ohneFotos);
         speichern();
         erfuellen(true);
       } catch (e) {

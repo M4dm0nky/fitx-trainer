@@ -21,6 +21,8 @@ import {
 } from '../history.js';
 import { esc, beiKlick, gehe, zahl } from '../dom.js';
 import { ausweichDialogOeffnen } from './swapSheet.js';
+import { fotoAufnehmen, fotoAnzeigen } from './photoSheet.js';
+import { fotoUrl, belegteSchluessel, fotoSchluessel, FOTO_ARTEN } from '../photos.js';
 import * as timer from '../timer.js';
 
 export function rendern(planId) {
@@ -148,6 +150,8 @@ function slotRendern(zustand, slot, einheit) {
         .map((satz, i) => satzRendern(slot, eintrag, satz, i, letzte, uebung))
         .join('')}
 
+      ${geraetFindenRendern(eintrag.uebungId, uebung)}
+
       <details class="hinweis">
         <summary>Ausführung</summary>
         <p>${esc(uebung ? uebung.hinweis : '')}</p>
@@ -157,6 +161,38 @@ function slotRendern(zustand, slot, einheit) {
         <a class="textlink" href="#/verlauf/${esc(eintrag.uebungId)}">Verlauf dieser Übung</a>
       </div>
     </section>`;
+}
+
+/**
+ * Alles zum Wiederfinden an einer Stelle: Erkennungstext plus die beiden Fotos.
+ * Bewusst getrennt vom Abschnitt "Ausführung" — das eine brauchst du auf dem Weg
+ * zum Gerät, das andere erst, wenn du davorsitzt.
+ *
+ * Die Bilder werden erst beim Aufklappen geladen (siehe fotosNachladen), damit das
+ * Rendern der Trainingsansicht nicht auf sieben IndexedDB-Abfragen wartet.
+ */
+function geraetFindenRendern(uebungId, uebung) {
+  if (!uebung) return '';
+  return `
+    <details class="hinweis geraet-finden" data-fotos-fuer="${esc(uebungId)}">
+      <summary>Gerät finden</summary>
+      ${uebung.erkennung ? `<p>${esc(uebung.erkennung)}</p>` : ''}
+      <div class="foto-reihe">
+        ${Object.entries(FOTO_ARTEN)
+          .map(
+            ([art, label]) => `
+            <button type="button" class="foto-feld" data-foto-slot="${esc(uebungId)}"
+                    data-foto-art="${esc(art)}" aria-label="${esc(label)}-Foto">
+              <span class="foto-platzhalter">＋<span>${esc(label)}</span></span>
+            </button>`
+          )
+          .join('')}
+      </div>
+      <p class="foto-erklaerung">
+        Eigene Fotos aus deinem Studio — sie zeigen dir auch, wo das Gerät steht.
+        Das zweite Bild ist für deine Sitzhöhe bzw. Hebelposition gedacht.
+      </p>
+    </details>`;
 }
 
 function letztesMalRendern(zustand, slot, eintrag, uebung, letzte) {
@@ -235,7 +271,77 @@ function rirPlatzhalter(slot, i) {
 
 // ── Interaktion ──────────────────────────────────────────────────────────────
 
+// ── Fotos ────────────────────────────────────────────────────────────────────
+
+/**
+ * Füllt die Fotofelder eines Abschnitts. Wird beim Aufklappen aufgerufen und nach
+ * jeder Änderung erneut — absichtlich nicht über neuZeichnen(), weil das die ganze
+ * Ansicht neu bauen und dabei alle aufgeklappten Abschnitte wieder schließen würde.
+ */
+async function fotoFelderFuellen(abschnitt) {
+  const felder = abschnitt.querySelectorAll('[data-foto-slot]');
+  for (const feld of felder) {
+    const { fotoSlot: uebungId, fotoArt: art } = feld.dataset;
+    const url = await fotoUrl(uebungId, art);
+    if (url) {
+      feld.classList.add('foto-feld-belegt');
+      feld.innerHTML = `<img src="${url}" alt="" loading="lazy" />
+        <span class="foto-marke">${esc(FOTO_ARTEN[art])}</span>`;
+    } else {
+      feld.classList.remove('foto-feld-belegt');
+      feld.innerHTML = `<span class="foto-platzhalter">＋<span>${esc(FOTO_ARTEN[art])}</span></span>`;
+    }
+  }
+}
+
+/**
+ * Markiert in der zugeklappten Überschrift, ob schon ein Foto da ist. Ohne das
+ * müsstest du jeden Abschnitt aufklappen, um zu sehen, wo noch eines fehlt.
+ */
+async function fotoMarkenSetzen(wurzel) {
+  const belegt = await belegteSchluessel();
+  wurzel.querySelectorAll('[data-fotos-fuer]').forEach((abschnitt) => {
+    const uebungId = abschnitt.dataset.fotosFuer;
+    const hat = Object.keys(FOTO_ARTEN).some((art) => belegt.has(fotoSchluessel(uebungId, art)));
+    const summary = abschnitt.querySelector('summary');
+    if (summary) {
+      summary.textContent = hat ? 'Gerät finden · Foto vorhanden' : 'Gerät finden · noch kein Foto';
+    }
+  });
+}
+
+function fotosVerdrahten(wurzel, zustand) {
+  fotoMarkenSetzen(wurzel);
+
+  // Bilder erst beim Aufklappen laden, nicht schon beim Rendern der Ansicht.
+  wurzel.querySelectorAll('[data-fotos-fuer]').forEach((abschnitt) => {
+    abschnitt.addEventListener('toggle', () => {
+      if (abschnitt.open && !abschnitt.dataset.geladen) {
+        abschnitt.dataset.geladen = '1';
+        fotoFelderFuellen(abschnitt);
+      }
+    });
+  });
+
+  beiKlick(wurzel, '[data-foto-slot]', (feld) => {
+    const { fotoSlot: uebungId, fotoArt: art } = feld.dataset;
+    const uebung = uebungFinden(uebungId, zustand.eigeneUebungen);
+    const abschnitt = feld.closest('[data-fotos-fuer]');
+    const danach = () => {
+      fotoFelderFuellen(abschnitt);
+      fotoMarkenSetzen(wurzel);
+    };
+    if (feld.classList.contains('foto-feld-belegt')) {
+      fotoAnzeigen(uebungId, art, uebung?.name || '', danach);
+    } else {
+      fotoAufnehmen(uebungId, art, danach);
+    }
+  });
+}
+
 function verdrahten(wurzel, zustand, plan, einheit, neuZeichnen) {
+  fotosVerdrahten(wurzel, zustand);
+
   // Eingaben laufend sichern. 'input' statt 'change', damit auch ein
   // weggewischter Tab nichts kostet.
   wurzel.addEventListener('input', (e) => {

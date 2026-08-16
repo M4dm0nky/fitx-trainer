@@ -43,6 +43,55 @@ pruefe('jede Übung hat ein bekanntes Bewegungsmuster und eine gültige Kategori
   }
 });
 
+pruefe('jede Übung hat einen brauchbaren Erkennungstext', () => {
+  for (const u of UEBUNGEN) {
+    assert.ok(u.erkennung, `erkennung fehlt: ${u.id}`);
+    assert.ok(u.erkennung.length > 80, `erkennung zu dünn: ${u.id} (${u.erkennung.length} Zeichen)`);
+    assert.notEqual(u.erkennung, u.hinweis, `erkennung == hinweis bei ${u.id}`);
+  }
+});
+
+pruefe('Erkennungstexte erfinden keine Standortangaben', () => {
+  // Die Geräteaufteilung unterscheidet sich je Filiale. Eine falsche Wegbeschreibung
+  // ist schlimmer als gar keine, deshalb darf hier nichts Ortsbezogenes stehen.
+  // Bewegungsrichtungen ("nach hinten ziehen") sind erlaubt und deshalb nicht
+  // Teil der Muster — gesucht wird nur nach echten Ortsbehauptungen.
+  const verboten = [
+    /\b(hinten|vorne|vorn)\s+(links|rechts)\b/i,
+    /\bin der (hinteren |vorderen )?Ecke\b/i,
+    /\bam (hinteren|vorderen) Ende\b/i,
+    /\b(erste[nr]?|zweite[nr]?|dritte[nr]?) (Stock|Etage|Reihe)\b/i,
+    /\bneben (dem|der) (Eingang|Theke|Empfang|Umkleide)/i,
+  ];
+  for (const u of UEBUNGEN) {
+    for (const muster of verboten) {
+      assert.ok(
+        !muster.test(u.erkennung),
+        `${u.id}: erfundene Ortsangabe (${muster}) — "${u.erkennung.match(muster)?.[0]}"`
+      );
+    }
+  }
+});
+
+pruefe('Erkennung nennt bei Plate-Loaded die Scheiben, bei Pin das Gewichtspaket', () => {
+  // Wie die Last angehängt wird, ist das schnellste Unterscheidungsmerkmal im Studio.
+  for (const u of UEBUNGEN) {
+    const t = u.erkennung.toLowerCase();
+    if (u.kategorie === 'scheiben') {
+      assert.ok(
+        t.includes('scheibe') || t.includes('plate-loaded'),
+        `${u.id}: Scheiben-Gerät ohne Hinweis auf Scheiben`
+      );
+    }
+    if (u.kategorie === 'pin') {
+      assert.ok(
+        t.includes('pin') || t.includes('steckgewicht') || t.includes('gewichtspaket') || t.includes('kabelzug'),
+        `${u.id}: Pin-Gerät ohne Hinweis auf Steckgewicht oder Kabelzug`
+      );
+    }
+  }
+});
+
 pruefe('jedes Bewegungsmuster hat mindestens zwei Ausweichoptionen', () => {
   for (const muster of Object.keys(MUSTER)) {
     const n = alternativenFinden(muster).reduce((s, g) => s + g.uebungen.length, 0);
