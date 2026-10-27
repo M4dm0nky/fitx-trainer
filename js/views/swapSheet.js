@@ -13,6 +13,7 @@ import { s } from '../store.js';
 import { alternativenFinden, KATEGORIEN, MUSTER, uebungFinden } from '../exercises.js';
 import { letzteLeistung, saetzeFormatieren, datumKurz } from '../history.js';
 import { fotoUrl } from '../photos.js';
+import { beispielbild } from '../bilder.js';
 import { esc, beiKlick } from '../dom.js';
 
 /**
@@ -87,6 +88,8 @@ export function ausweichDialogOeffnen({ muster, aktuelleId, beiWahl }) {
       } catch (e) {
         console.warn(`Miniatur ${feld.dataset.mini} nicht ladbar`, e);
       }
+      // Kein eigenes Foto: ersatzweise das freie Beispielbild (falls vorhanden).
+      if (!url) url = beispielbild(feld.dataset.mini)?.datei || null;
       if (url) {
         feld.innerHTML = `<img src="${url}" alt="" loading="lazy" />`;
         feld.classList.add('wahl-mini-belegt');

@@ -21,7 +21,8 @@ import {
 } from '../history.js';
 import { esc, beiKlick, gehe, zahl } from '../dom.js';
 import { ausweichDialogOeffnen } from './swapSheet.js';
-import { fotoAufnehmen, fotoAnzeigen } from './photoSheet.js';
+import { fotoAufnehmen, fotoAnzeigen, beispielAnzeigen } from './photoSheet.js';
+import { beispielbild, suchUrl } from '../bilder.js';
 import { fotoUrl, belegteSchluessel, fotoSchluessel, FOTO_ARTEN } from '../photos.js';
 import * as timer from '../timer.js';
 
@@ -204,10 +205,22 @@ function slotRendern(zustand, slot, einheit) {
  */
 function geraetFindenRendern(uebungId, uebung) {
   if (!uebung) return '';
+  const beispiel = beispielbild(uebungId);
   return `
     <details class="hinweis geraet-finden" data-fotos-fuer="${esc(uebungId)}">
       <summary>Gerät finden</summary>
       ${uebung.erkennung ? `<p>${esc(uebung.erkennung)}</p>` : ''}
+      ${
+        beispiel
+          ? `<button type="button" class="beispiel-feld" data-beispiel="${esc(uebungId)}">
+               <img src="${esc(beispiel.datei)}" alt="Beispiel: ${esc(uebung.name)}" loading="lazy" />
+               <span class="foto-marke">Beispiel</span>
+             </button>
+             <p class="bildnachweis">Foto: ${esc(beispiel.urheber)} ·
+               <a href="${esc(beispiel.lizenzUrl)}" target="_blank" rel="noopener">${esc(beispiel.lizenz)}</a> ·
+               <a href="${esc(beispiel.quelle)}" target="_blank" rel="noopener">Wikimedia Commons</a></p>`
+          : ''
+      }
       <div class="foto-reihe">
         ${Object.entries(FOTO_ARTEN)
           .map(
@@ -219,6 +232,7 @@ function geraetFindenRendern(uebungId, uebung) {
           )
           .join('')}
       </div>
+      <a class="knopf knopf-klein bildsuche" href="${esc(suchUrl(uebung))}" target="_blank" rel="noopener">🔎 Bilder im Netz</a>
       <p class="foto-erklaerung">
         Eigene Fotos aus deinem Studio — sie zeigen dir auch, wo das Gerät steht.
         Das zweite Bild ist für deine Sitzhöhe bzw. Hebelposition gedacht.
@@ -360,6 +374,13 @@ function fotosVerdrahten(wurzel, zustand) {
         fotoFelderFuellen(abschnitt);
       }
     });
+  });
+
+  beiKlick(wurzel, '[data-beispiel]', (feld) => {
+    const uebungId = feld.dataset.beispiel;
+    const eintrag = beispielbild(uebungId);
+    if (!eintrag) return;
+    beispielAnzeigen(uebungFinden(uebungId, zustand.eigeneUebungen)?.name || '', eintrag);
   });
 
   beiKlick(wurzel, '[data-foto-slot]', (feld) => {

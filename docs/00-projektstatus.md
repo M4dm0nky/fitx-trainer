@@ -14,8 +14,8 @@ Projekt kalt aufnimmst, fang hier an und lies dann [01-zweck-und-hintergrund.md]
 | **Live** | https://m4dm0nky.github.io/fitx-trainer/ |
 | **Repo** | https://github.com/M4dm0nky/fitx-trainer (öffentlich) |
 | **Lokal** | `C:\Dropbox\Incomming\github\fitx-trainer` |
-| **Umfang** | 15 JS-Module / ~2900 Zeilen, 4 Testdateien / ~740 Zeilen |
-| **Tests** | 62 grün — Logik 25, Ansichten 22, Fotos 13, Router 2 |
+| **Umfang** | 16 JS-Module / ~3100 Zeilen, 4 Testdateien, 14 Beispielbilder in `bilder/` |
+| **Tests** | 70 grün — Logik 30, Ansichten 25, Fotos 13, Router 2 |
 | **Build** | keiner. Vanilla JS als ES-Module, GitHub Pages liefert die Dateien direkt aus |
 
 Alle Repos dieses Nutzers liegen unter `C:\Dropbox\Incomming\github\` — nicht im
@@ -45,7 +45,9 @@ ihrer eigenen Historie und Miniaturbild. Wechsel gilt standardmäßig nur für d
 laufende Einheit.
 
 **Gerät finden.** Aufklappbarer Abschnitt mit Erkennungstext und zwei Fotoplätzen
-(Gerät + Einstellung). Fotos nimmt der Nutzer selbst auf.
+(Gerät + Einstellung). Fotos nimmt der Nutzer selbst auf. Dazu für 14 Übungen ein
+frei lizenziertes Beispielbild von Wikimedia Commons und für alle ein Knopf
+„Bilder im Netz" (Google-Bildersuche mit ausgeschriebenem Gerätenamen).
 
 **Weiteres.** Plan-Editor (Slots hinzufügen, löschen, umsortieren, Vorgaben ändern),
 Verlauf je Übungsvariante mit Mini-Diagramm, Backup als JSON inklusive Fotos,
@@ -59,7 +61,7 @@ Training alles weg.
 
 ## Was ungetestet ist
 
-**Wichtig für jeden, der hier weiterarbeitet.** Die 62 automatischen Tests laufen in
+**Wichtig für jeden, der hier weiterarbeitet.** Die 70 automatischen Tests laufen in
 Node, ohne Browser. Erstellt wurde die App von einem Agenten ohne Browser, ohne
 Kamera und ohne iPhone. Folgendes ist deshalb **nie in der echten Umgebung
 ausgeführt worden**:

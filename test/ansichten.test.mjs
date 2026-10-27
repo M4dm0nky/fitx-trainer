@@ -238,4 +238,56 @@ pruefe('Übungsnamen mit Sonderzeichen zerlegen die Seite nicht', () => {
   assert.ok(a.html.includes('&lt;script&gt;'));
 });
 
+console.log('\n— Beispielbilder —');
+
+const { BEISPIELBILDER } = await import('../js/bilder.js');
+const testBild = (urheber = 'Test Person') => ({
+  datei: 'bilder/hs-chest-press.jpg',
+  urheber,
+  lizenz: 'CC BY-SA 4.0',
+  lizenzUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
+  quelle: 'https://commons.wikimedia.org/wiki/File:X.jpg',
+});
+
+pruefe('Einstellungen ohne Beispielbilder zeigen den Leer-Satz', () => {
+  // Echte Einträge kurz beiseitelegen, damit der Test nicht von den Daten abhängt.
+  const echt = { ...BEISPIELBILDER };
+  for (const k of Object.keys(BEISPIELBILDER)) delete BEISPIELBILDER[k];
+  try {
+    const a = einstellungen.rendern();
+    assert.ok(a.html.includes('Bildnachweise'));
+    assert.ok(a.html.includes('Noch keine Beispielbilder hinterlegt.'));
+  } finally {
+    Object.assign(BEISPIELBILDER, echt);
+  }
+});
+
+pruefe('Trainingsansicht zeigt Beispielbild mit Nennung und 7 Suchlinks', () => {
+  BEISPIELBILDER['hs-chest-press'] = testBild();
+  try {
+    const a = training.rendern('plan-a');
+    assert.ok(a.html.includes('data-beispiel="hs-chest-press"'));
+    assert.ok(a.html.includes('src="bilder/hs-chest-press.jpg"'));
+    assert.ok(a.html.includes('Test Person'));
+    assert.ok(a.html.includes('CC BY-SA 4.0'));
+    assert.equal((a.html.match(/class="knopf knopf-klein bildsuche"/g) || []).length, 7);
+    assert.equal((a.html.match(/class="[^"]*bildsuche[^"]*"[^>]*target="_blank" rel="noopener"/g) || []).length, 7);
+  } finally {
+    delete BEISPIELBILDER['hs-chest-press'];
+  }
+});
+
+pruefe('Einstellungen listen Bildnachweise; Urheber wird maskiert', () => {
+  BEISPIELBILDER['hs-chest-press'] = testBild('Max <b>Fett</b>');
+  try {
+    const a = einstellungen.rendern();
+    assert.ok(a.html.includes('Bildnachweise'));
+    assert.ok(a.html.includes('Max &lt;b&gt;Fett&lt;/b&gt;'));
+    assert.ok(!a.html.includes('<b>Fett</b>'));
+    assert.ok(!a.html.includes('Noch keine Beispielbilder hinterlegt.'));
+  } finally {
+    delete BEISPIELBILDER['hs-chest-press'];
+  }
+});
+
 console.log(`\n${ok} Prüfungen bestanden.${process.exitCode ? ' ES GAB FEHLER.' : ''}\n`);

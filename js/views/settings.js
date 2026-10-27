@@ -3,6 +3,7 @@
 import { s, speichern, backupExportieren, backupImportieren, neueId } from '../store.js';
 import { MUSTER, KATEGORIEN, UEBUNGEN } from '../exercises.js';
 import { fotosZaehlen, groesseLesbar } from '../photos.js';
+import { bildnachweise } from '../bilder.js';
 import { esc, beiKlick } from '../dom.js';
 
 /**
@@ -24,6 +25,8 @@ export function rendern() {
     (n, e) => n + e.eintraege.reduce((m, ei) => m + ei.saetze.length, 0),
     0
   );
+
+  const nachweise = bildnachweise(UEBUNGEN);
 
   return {
     titel: 'Mehr',
@@ -136,6 +139,28 @@ export function rendern() {
           keine Vibration. Bei stummgeschaltetem Gerät bleibt er aus; dann hilft nur der
           Blick auf den Balken.
         </p>
+      </section>
+
+      <div class="abschnitt-titel">Bildnachweise</div>
+      <section class="karte">
+        <p class="info-text" style="margin-top:0">
+          Beispielbilder von Wikimedia Commons unter freier Lizenz. Deine eigenen Fotos
+          bleiben nur auf deinem Gerät.
+        </p>
+        ${
+          nachweise.length
+            ? nachweise
+                .map(
+                  (n) => `
+                <p class="bildnachweis">
+                  <strong>${esc(n.name)}</strong> · Foto: ${esc(n.urheber)} ·
+                  <a href="${esc(n.lizenzUrl)}" target="_blank" rel="noopener">${esc(n.lizenz)}</a> ·
+                  <a href="${esc(n.quelle)}" target="_blank" rel="noopener">Wikimedia Commons</a>
+                </p>`
+                )
+                .join('')
+            : '<p class="info-text" style="margin-bottom:0">Noch keine Beispielbilder hinterlegt.</p>'
+        }
       </section>
 
       <p class="info-text" style="text-align:center;margin:28px 0 0">

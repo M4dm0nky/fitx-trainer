@@ -1,6 +1,7 @@
 // Prüft die Kernlogik ohne Browser: Historie je Variante, Plan-Wechsel,
 // Alternativen-Ableitung, Formatierung.
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { STANDARD_PLAENE, naechsterPlan, letzteEinheit, tageSeit } from '../js/plans.js';
 import {
   UEBUNGEN,
@@ -15,6 +16,14 @@ import {
   saetzeFormatieren,
   verlaufsReihe,
 } from '../js/history.js';
+
+import {
+  BEISPIELBILDER,
+  ERLAUBTE_LIZENZ,
+  SUCHBEGRIFFE,
+  suchbegriff,
+  suchUrl,
+} from '../js/bilder.js';
 
 let ok = 0;
 const pruefe = (name, fn) => {
@@ -310,6 +319,44 @@ pruefe('tageSeit rechnet auf Tagesgrenzen', () => {
   const gestern = new Date(Date.now() - 86400000).toISOString();
   assert.equal(tageSeit(gestern), 1);
   assert.equal(tageSeit(new Date().toISOString()), 0);
+});
+
+console.log('\n— Beispielbilder —');
+
+pruefe('Suchbegriff ersetzt HS und KH- durch ausgeschriebene Namen', () => {
+  // Erfundene IDs, damit keine Ausnahme aus SUCHBEGRIFFE greift.
+  assert.equal(suchbegriff({ id: 'test-hs', name: 'HS Chest Press' }), 'Hammer Strength Chest Press');
+  assert.equal(suchbegriff(uebungFinden('kh-curl')), 'Kurzhantel Curl');
+  // Ausnahmen gehen vor: Hammer Strength mit vollem Modellnamen.
+  assert.equal(suchbegriff(uebungFinden('hs-chest-press')), 'Hammer Strength Iso-Lateral Chest Press');
+});
+
+pruefe('SUCHBEGRIFFE kennt nur echte Übungen', () => {
+  for (const id of Object.keys(SUCHBEGRIFFE)) assert.ok(uebungFinden(id), `unbekannte Übung: ${id}`);
+});
+
+pruefe('kein Suchbegriff enthält HS oder KH-', () => {
+  for (const u of UEBUNGEN) {
+    const b = suchbegriff(u);
+    assert.ok(!/(^|\s)HS /.test(b) && !b.includes('KH-'), `Kürzel in: ${b}`);
+  }
+});
+
+pruefe('Suchlink ist eine kodierte Google-Bildersuche', () => {
+  const u = suchUrl(uebungFinden('kh-curl'));
+  assert.ok(u.startsWith('https://www.google.com/search?tbm=isch&q='));
+  assert.ok(u.endsWith('Kurzhantel%20Curl'));
+});
+
+pruefe('jedes Beispielbild hat Nachweis, freie Lizenz und existierende, kleine Datei', () => {
+  for (const [id, e] of Object.entries(BEISPIELBILDER)) {
+    assert.ok(UEBUNGEN.some((u) => u.id === id), `unbekannte Übung: ${id}`);
+    for (const f of ['datei', 'urheber', 'lizenz', 'quelle']) assert.ok(e[f], `${id}: ${f} leer`);
+    assert.ok(ERLAUBTE_LIZENZ.test(e.lizenz), `${id}: Lizenz nicht erlaubt: ${e.lizenz}`);
+    assert.ok(e.quelle.startsWith('https://commons.wikimedia.org/'), `${id}: Quelle`);
+    const st = fs.statSync(new URL('../' + e.datei, import.meta.url));
+    assert.ok(st.size < 200 * 1024, `${id}: Datei zu groß (${st.size})`);
+  }
 });
 
 console.log(`\n${ok} Prüfungen bestanden.${process.exitCode ? ' ES GAB FEHLER.' : ''}\n`);

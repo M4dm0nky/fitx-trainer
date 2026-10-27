@@ -58,9 +58,8 @@ export async function fotoAnzeigen(uebungId, art, uebungName, fertig) {
   const url = await fotoUrl(uebungId, art);
   if (!url) return fotoAufnehmen(uebungId, art, fertig);
 
-  const hinter = document.createElement('div');
-  hinter.className = 'blatt-hinter foto-voll';
-  hinter.innerHTML = `
+  vollbildOeffnen(
+    `
     <div class="foto-voll-inhalt" role="dialog" aria-label="Foto ansehen">
       <div class="foto-voll-kopf">
         <span class="foto-voll-titel">${esc(uebungName)} · ${esc(FOTO_ARTEN[art])}</span>
@@ -74,31 +73,62 @@ export async function fotoAnzeigen(uebungId, art, uebungName, fertig) {
           Foto löschen
         </button>
       </div>
-    </div>`;
+    </div>`,
+    async (aktion, schliessen) => {
+      if (aktion === 'ersetzen') {
+        schliessen();
+        return fotoAufnehmen(uebungId, art, fertig);
+      }
+
+      if (aktion === 'loeschen') {
+        if (!confirm('Foto löschen?')) return;
+        urlVergessen(uebungId, art);
+        await fotoLoeschen(uebungId, art);
+        schliessen();
+        fertig?.();
+      }
+    }
+  );
+}
+
+/**
+ * Vollbildanzeige eines Beispielbilds (frei lizenziert, aus bilder/). Nur Schließen,
+ * dazu die Urhebernennung, die die Lizenz verlangt.
+ */
+export function beispielAnzeigen(uebungName, bild) {
+  vollbildOeffnen(`
+    <div class="foto-voll-inhalt" role="dialog" aria-label="Beispielbild ansehen">
+      <div class="foto-voll-kopf">
+        <span class="foto-voll-titel">${esc(uebungName)} · Beispiel</span>
+        <button type="button" class="knopf knopf-klein knopf-still" data-foto="zu">Schließen</button>
+      </div>
+      <img src="${esc(bild.datei)}" alt="Beispiel: ${esc(uebungName)}" class="foto-voll-bild" />
+      <p class="foto-voll-tipp">Mit zwei Fingern aufziehen zum Vergrößern.</p>
+      <p class="bildnachweis">Foto: ${esc(bild.urheber)} ·
+        <a href="${esc(bild.lizenzUrl)}" target="_blank" rel="noopener">${esc(bild.lizenz)}</a> ·
+        <a href="${esc(bild.quelle)}" target="_blank" rel="noopener">Wikimedia Commons</a></p>
+    </div>`);
+}
+
+/**
+ * Gemeinsamer Overlay-Rahmen: Hintergrund, Schließen per Knopf oder Klick daneben.
+ * Weitere data-foto-Aktionen gehen an beiAktion(aktion, schliessen).
+ */
+function vollbildOeffnen(innenHtml, beiAktion) {
+  const hinter = document.createElement('div');
+  hinter.className = 'blatt-hinter foto-voll';
+  hinter.innerHTML = innenHtml;
 
   function schliessen() {
     hinter.remove();
   }
 
-  hinter.addEventListener('click', async (e) => {
+  hinter.addEventListener('click', (e) => {
     if (e.target === hinter) return schliessen();
     const aktion = e.target.closest('[data-foto]')?.dataset.foto;
     if (!aktion) return;
-
     if (aktion === 'zu') return schliessen();
-
-    if (aktion === 'ersetzen') {
-      schliessen();
-      return fotoAufnehmen(uebungId, art, fertig);
-    }
-
-    if (aktion === 'loeschen') {
-      if (!confirm('Foto löschen?')) return;
-      urlVergessen(uebungId, art);
-      await fotoLoeschen(uebungId, art);
-      schliessen();
-      fertig?.();
-    }
+    return beiAktion?.(aktion, schliessen);
   });
 
   document.body.appendChild(hinter);

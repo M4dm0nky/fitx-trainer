@@ -21,8 +21,8 @@ Am Rechner `http://localhost:8000` öffnen. Vom iPhone im selben WLAN über
 ## Tests
 
 ```powershell
-node test\logik.test.mjs        # 25 Prüfungen
-node test\ansichten.test.mjs    # 22 Prüfungen
+node test\logik.test.mjs        # 30 Prüfungen
+node test\ansichten.test.mjs    # 25 Prüfungen
 node test\fotos.test.mjs        # 13 Prüfungen
 node test\router.test.mjs       # 2 Prüfungen
 ```
@@ -33,7 +33,7 @@ Keine Abhängigkeiten, kein `npm install` — reines Node.
 
 | Datei | Inhalt |
 |---|---|
-| `logik` | Bibliothek (eindeutige IDs, gültige Muster, Erkennungstexte), Pläne (Satzzahlen, Wochenvolumen im Korridor, kein Beintraining), Plan-Wechsel, **Historie je Variante**, Formatierung |
+| `logik` | Bibliothek (eindeutige IDs, gültige Muster, Erkennungstexte), Pläne (Satzzahlen, Wochenvolumen im Korridor, kein Beintraining), Plan-Wechsel, **Historie je Variante**, Formatierung, Beispielbilder (Nachweis, Lizenz, Dateigröße) und Suchbegriffe |
 | `ansichten` | rendert jede Ansicht gegen einen simulierten Speicher — fängt Laufzeitfehler, die eine Syntaxprüfung nicht sieht. Prüft auch `inputmode`, RIR-Platzhalter und HTML-Maskierung |
 | `fotos` | Schlüsselbildung, Base64-Umwandlung, IndexedDB-Vertrag gegen eine Attrappe, Backup-Rundlauf |
 | `router` | Router (`js/app.js`): Nach mehreren Renders hängt genau ein `click`-Listener an `#app` |

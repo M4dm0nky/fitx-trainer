@@ -881,6 +881,54 @@ textarea.notiz {
   margin: 0;
 }
 
+/* Beispielbild (frei lizenziert) in "Gerät finden". */
+.beispiel-feld {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  padding: 0;
+  margin: 12px 0 4px;
+  border: 2px solid var(--akzent);
+  border-radius: 12px;
+  background: var(--flaeche-2);
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0.92;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.beispiel-feld img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.bildnachweis {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--gedaempft);
+  margin: 4px 0 8px;
+  overflow-wrap: anywhere;
+}
+
+/* Browser-Blau ist auf dem dunklen Grund kaum lesbar. */
+.bildnachweis a {
+  color: var(--akzent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bildsuche {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  text-decoration: none;
+}
+
 /* Miniatur im Ausweich-Dialog.
    display:none statt width:0 — .wahl ist ein Flex-Container mit gap, ein
    nullbreites Element würde trotzdem den vollen Abstand erzeugen und alle
