@@ -22,7 +22,7 @@ import {
 import { esc, beiKlick, gehe, zahl } from '../dom.js';
 import { ausweichDialogOeffnen } from './swapSheet.js';
 import { fotoAufnehmen, fotoAnzeigen, beispielAnzeigen } from './photoSheet.js';
-import { beispielbild, suchUrl } from '../bilder.js';
+import { beispielbild, suchUrl, quelleName } from '../bilder.js';
 import { fotoUrl, belegteSchluessel, fotoSchluessel, FOTO_ARTEN } from '../photos.js';
 import * as timer from '../timer.js';
 
@@ -153,6 +153,7 @@ function slotRendern(zustand, slot, einheit) {
 
   return `
     <section class="karte" data-slot="${esc(slot.id)}">
+      ${karteBildRendern(eintrag.uebungId, uebung)}
       <div class="karte-kopf">
         <div class="karte-kopf-text">
           <div class="muster-label">${esc(MUSTER[slot.muster] || '')}</div>
@@ -196,6 +197,23 @@ function slotRendern(zustand, slot, einheit) {
 }
 
 /**
+ * Gerätebild über die ganze Kartenbreite, oberhalb des Kopfs — ein kleines Vorschaubild
+ * war aus der Hand nicht zu erkennen. Beim Rendern steht hier nur das Beispielbild
+ * (synchron verfügbar); ein eigenes Gerätefoto kommt asynchron dazu und hat Vorrang
+ * (siehe vorschauAktualisieren). Ohne Bild gibt es kein Element — kein leerer Platz.
+ */
+function karteBildRendern(uebungId, uebung) {
+  const beispiel = beispielbild(uebungId);
+  if (!uebung || !beispiel) return '';
+  return `<button type="button" class="karte-bild" data-karte-bild="${esc(uebungId)}"
+            aria-label="Beispielbild ansehen: ${esc(uebung.name)}">${karteBildInnen(beispiel.datei, uebung.name)}</button>`;
+}
+
+function karteBildInnen(src, name) {
+  return `<img src="${esc(src)}" alt="${esc(name)}" loading="lazy" />`;
+}
+
+/**
  * Alles zum Wiederfinden an einer Stelle: Erkennungstext plus die beiden Fotos.
  * Bewusst getrennt vom Abschnitt "Ausführung" — das eine brauchst du auf dem Weg
  * zum Gerät, das andere erst, wenn du davorsitzt.
@@ -218,7 +236,7 @@ function geraetFindenRendern(uebungId, uebung) {
              </button>
              <p class="bildnachweis">Foto: ${esc(beispiel.urheber)} ·
                <a href="${esc(beispiel.lizenzUrl)}" target="_blank" rel="noopener">${esc(beispiel.lizenz)}</a> ·
-               <a href="${esc(beispiel.quelle)}" target="_blank" rel="noopener">Wikimedia Commons</a></p>`
+               <a href="${esc(beispiel.quelle)}" target="_blank" rel="noopener">${esc(quelleName(beispiel))}</a></p>`
           : ''
       }
       <div class="foto-reihe">
@@ -363,8 +381,72 @@ async function fotoMarkenSetzen(wurzel) {
   });
 }
 
+/**
+ * Setzt das Vorschaubild einer Karte: eigenes Gerätefoto vor Beispielbild, ohne
+ * beides gar keines. Je Karte einzeln abgesichert (siehe fotoFelderFuellen).
+ */
+async function vorschauAktualisieren(karte, zustand) {
+  const kopf = karte.querySelector('.karte-kopf');
+  const uebungId = karte.querySelector('[data-fotos-fuer]')?.dataset.fotosFuer;
+  if (!kopf || !uebungId) return;
+  // Das Bild sitzt vor dem Kopf direkt in der Karte, nicht im Kopf selbst.
+  const name = uebungFinden(uebungId, zustand.eigeneUebungen)?.name || '';
+
+  let url = null;
+  try {
+    url = await fotoUrl(uebungId, 'geraet');
+  } catch (e) {
+    console.warn(`Foto ${uebungId}:geraet nicht ladbar`, e);
+  }
+  const beispiel = beispielbild(uebungId);
+  let knopf = karte.querySelector(':scope > .karte-bild');
+
+  if (!url && !beispiel) {
+    knopf?.remove();
+    return;
+  }
+  if (!knopf) {
+    knopf = document.createElement('button');
+    knopf.type = 'button';
+    knopf.className = 'karte-bild';
+    knopf.dataset.karteBild = uebungId;
+    karte.insertBefore(knopf, kopf);
+  }
+  if (url) {
+    knopf.dataset.eigen = '1';
+    knopf.setAttribute('aria-label', `Eigenes Foto ansehen: ${name}`);
+    knopf.innerHTML = karteBildInnen(url, name);
+  } else {
+    delete knopf.dataset.eigen;
+    knopf.setAttribute('aria-label', `Beispielbild ansehen: ${name}`);
+    knopf.innerHTML = karteBildInnen(beispiel.datei, name);
+  }
+}
+
+function vorschauenAktualisieren(wurzel, zustand) {
+  wurzel.querySelectorAll('[data-slot]').forEach((karte) => vorschauAktualisieren(karte, zustand));
+}
+
 function fotosVerdrahten(wurzel, zustand) {
   fotoMarkenSetzen(wurzel);
+  vorschauenAktualisieren(wurzel, zustand);
+
+  // Vorschaubild auf der Karte: eigenes Foto wie im Abschnitt, sonst das Beispielbild.
+  beiKlick(wurzel, '[data-karte-bild]', (knopf) => {
+    const uebungId = knopf.dataset.karteBild;
+    const name = uebungFinden(uebungId, zustand.eigeneUebungen)?.name || '';
+    if (knopf.dataset.eigen) {
+      const abschnitt = knopf.closest('[data-slot]')?.querySelector('[data-fotos-fuer]');
+      fotoAnzeigen(uebungId, 'geraet', name, () => {
+        if (abschnitt?.dataset.geladen) fotoFelderFuellen(abschnitt);
+        fotoMarkenSetzen(wurzel);
+        vorschauenAktualisieren(wurzel, zustand);
+      });
+      return;
+    }
+    const eintrag = beispielbild(uebungId);
+    if (eintrag) beispielAnzeigen(name, eintrag);
+  });
 
   // Bilder erst beim Aufklappen laden, nicht schon beim Rendern der Ansicht.
   wurzel.querySelectorAll('[data-fotos-fuer]').forEach((abschnitt) => {
@@ -390,6 +472,7 @@ function fotosVerdrahten(wurzel, zustand) {
     const danach = () => {
       fotoFelderFuellen(abschnitt);
       fotoMarkenSetzen(wurzel);
+      vorschauenAktualisieren(wurzel, zustand);
     };
     if (feld.classList.contains('foto-feld-belegt')) {
       fotoAnzeigen(uebungId, art, uebung?.name || '', danach);

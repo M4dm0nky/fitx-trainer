@@ -23,6 +23,7 @@ import {
   SUCHBEGRIFFE,
   suchbegriff,
   suchUrl,
+  quelleName,
 } from '../js/bilder.js';
 
 let ok = 0;
@@ -353,10 +354,28 @@ pruefe('jedes Beispielbild hat Nachweis, freie Lizenz und existierende, kleine D
     assert.ok(UEBUNGEN.some((u) => u.id === id), `unbekannte Übung: ${id}`);
     for (const f of ['datei', 'urheber', 'lizenz', 'quelle']) assert.ok(e[f], `${id}: ${f} leer`);
     assert.ok(ERLAUBTE_LIZENZ.test(e.lizenz), `${id}: Lizenz nicht erlaubt: ${e.lizenz}`);
-    assert.ok(e.quelle.startsWith('https://commons.wikimedia.org/'), `${id}: Quelle`);
+    assert.ok(e.quelle.startsWith('https://'), `${id}: Quelle muss mit https:// beginnen`);
     const st = fs.statSync(new URL('../' + e.datei, import.meta.url));
     assert.ok(st.size < 200 * 1024, `${id}: Datei zu groß (${st.size})`);
   }
+});
+
+pruefe('ERLAUBTE_LIZENZ lässt freie Lizenzen zu und lehnt NC/ND ab', () => {
+  for (const ok of ['CC0 1.0', 'Public domain', 'CC BY 2.0', 'CC BY-SA 4.0']) {
+    assert.ok(ERLAUBTE_LIZENZ.test(ok), `sollte erlaubt sein: ${ok}`);
+  }
+  for (const nein of ['CC BY-NC 2.0', 'CC BY-ND 4.0', 'CC BY-NC-SA 3.0', 'All rights reserved']) {
+    assert.ok(!ERLAUBTE_LIZENZ.test(nein), `sollte verboten sein: ${nein}`);
+  }
+});
+
+pruefe('quelleName: Feld hat Vorrang, sonst aus dem Host abgeleitet', () => {
+  const q = (quelle, extra = {}) => quelleName({ quelle, ...extra });
+  assert.equal(q('https://commons.wikimedia.org/wiki/File:X.jpg'), 'Wikimedia Commons');
+  assert.equal(q('https://www.flickr.com/photos/abc/123'), 'Flickr');
+  assert.equal(q('https://flickr.com/photos/abc/123'), 'Flickr');
+  assert.equal(q('https://beispiel.example.org/bild.jpg'), 'beispiel.example.org');
+  assert.equal(q('https://www.flickr.com/photos/abc/123', { quelleName: 'Eigener Name' }), 'Eigener Name');
 });
 
 console.log(`\n${ok} Prüfungen bestanden.${process.exitCode ? ' ES GAB FEHLER.' : ''}\n`);

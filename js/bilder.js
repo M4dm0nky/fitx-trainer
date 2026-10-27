@@ -1,4 +1,4 @@
-// Beispielbilder: frei lizenzierte Fotos von Wikimedia Commons plus die Suchbegriffe
+// Beispielbilder: frei lizenzierte Fotos (Wikimedia Commons, Flickr u. a.) plus die Suchbegriffe
 // für den Knopf "Bilder im Netz".
 //
 // Bewusst getrennt von exercises.js: Dort stehen die Übungsdaten, hier alles, was mit
@@ -9,7 +9,7 @@
 // wenn die Lizenz frei ist (ERLAUBTE_LIZENZ) und Urheber, Lizenz und Quelle stimmen.
 // Der Logik-Test prüft das für jeden Eintrag.
 
-/** { [uebungId]: { datei, urheber, lizenz, lizenzUrl, quelle } } */
+/** { [uebungId]: { datei, urheber, lizenz, lizenzUrl, quelle, quelleName? } } — quelle: https-Seite des Bilds (Commons, Flickr …) */
 export const BEISPIELBILDER = {
   'ab-crunch-maschine': {
     datei: 'bilder/ab-crunch-maschine.jpg',
@@ -139,6 +139,23 @@ export const SUCHBEGRIFFE = {
 
 /** CC0, Public Domain, CC BY und CC BY-SA in jeder Version. Kein NC, kein ND. */
 export const ERLAUBTE_LIZENZ = /^(CC0|Public domain|CC BY(-SA)? [\d.]+)/i;
+
+/**
+ * Anzeigename der Bildquelle für den Linktext: explizites Feld quelleName, sonst aus
+ * dem Host abgeleitet (Commons, Flickr), sonst der Hostname selbst.
+ */
+export function quelleName(bild) {
+  if (bild.quelleName) return bild.quelleName;
+  let host = '';
+  try {
+    host = new URL(bild.quelle).hostname;
+  } catch {
+    return 'Quelle';
+  }
+  if (host === 'commons.wikimedia.org') return 'Wikimedia Commons';
+  if (host === 'flickr.com' || host === 'www.flickr.com') return 'Flickr';
+  return host;
+}
 
 export function beispielbild(uebungId) {
   return BEISPIELBILDER[uebungId] || null;

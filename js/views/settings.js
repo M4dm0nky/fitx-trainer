@@ -3,7 +3,7 @@
 import { s, speichern, backupExportieren, backupImportieren, neueId } from '../store.js';
 import { MUSTER, KATEGORIEN, UEBUNGEN } from '../exercises.js';
 import { fotosZaehlen, groesseLesbar } from '../photos.js';
-import { bildnachweise } from '../bilder.js';
+import { bildnachweise, quelleName } from '../bilder.js';
 import { esc, beiKlick } from '../dom.js';
 
 /**
@@ -144,7 +144,7 @@ export function rendern() {
       <div class="abschnitt-titel">Bildnachweise</div>
       <section class="karte">
         <p class="info-text" style="margin-top:0">
-          Beispielbilder von Wikimedia Commons unter freier Lizenz. Deine eigenen Fotos
+          Beispielbilder unter freier Lizenz (Wikimedia Commons, Flickr). Deine eigenen Fotos
           bleiben nur auf deinem Gerät.
         </p>
         ${
@@ -155,7 +155,7 @@ export function rendern() {
                 <p class="bildnachweis">
                   <strong>${esc(n.name)}</strong> · Foto: ${esc(n.urheber)} ·
                   <a href="${esc(n.lizenzUrl)}" target="_blank" rel="noopener">${esc(n.lizenz)}</a> ·
-                  <a href="${esc(n.quelle)}" target="_blank" rel="noopener">Wikimedia Commons</a>
+                  <a href="${esc(n.quelle)}" target="_blank" rel="noopener">${esc(quelleName(n))}</a>
                 </p>`
                 )
                 .join('')

@@ -8,6 +8,7 @@
 
 import { fotoSpeichern, fotoLoeschen, fotoUrl, urlVergessen, FOTO_ARTEN } from '../photos.js';
 import { esc } from '../dom.js';
+import { quelleName } from '../bilder.js';
 
 /**
  * Öffnet den iOS-Auswahldialog und speichert das gewählte Bild.
@@ -106,7 +107,7 @@ export function beispielAnzeigen(uebungName, bild) {
       <p class="foto-voll-tipp">Mit zwei Fingern aufziehen zum Vergrößern.</p>
       <p class="bildnachweis">Foto: ${esc(bild.urheber)} ·
         <a href="${esc(bild.lizenzUrl)}" target="_blank" rel="noopener">${esc(bild.lizenz)}</a> ·
-        <a href="${esc(bild.quelle)}" target="_blank" rel="noopener">Wikimedia Commons</a></p>
+        <a href="${esc(bild.quelle)}" target="_blank" rel="noopener">${esc(quelleName(bild))}</a></p>
     </div>`);
 }
 

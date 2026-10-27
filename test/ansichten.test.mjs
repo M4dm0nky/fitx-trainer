@@ -277,6 +277,32 @@ pruefe('Trainingsansicht zeigt Beispielbild mit Nennung und 7 Suchlinks', () => 
   }
 });
 
+pruefe('Übungskarte mit Beispielbild zeigt Vorschaubild, Karte ohne Bild keines', () => {
+  const a = training.rendern('plan-a');
+  assert.ok(a.html.includes('data-karte-bild="butterfly-pin"'), 'Vorschaubild fehlt');
+  assert.ok(
+    new RegExp('data-karte-bild="butterfly-pin"[^>]*>\\s*<img src="' + BEISPIELBILDER['butterfly-pin'].datei).test(a.html),
+    'src des Beispielbilds fehlt'
+  );
+  // hs-chest-press hat (ohne Testeintrag) kein Bild → kein leerer Platz.
+  assert.ok(!BEISPIELBILDER['hs-chest-press'], 'Annahme: hs-chest-press ohne Beispielbild');
+  assert.ok(!a.html.includes('data-karte-bild="hs-chest-press"'), 'Vorschaubild ohne Bild');
+});
+
+pruefe('Fremde Quelle: Linktext kommt aus quelleName, nicht fest "Wikimedia Commons"', () => {
+  BEISPIELBILDER['hs-chest-press'] = {
+    ...testBild(),
+    quelle: 'https://www.flickr.com/photos/x/1',
+  };
+  try {
+    const a = training.rendern('plan-a');
+    assert.ok(a.html.includes('>Flickr</a>'), 'Trainingsansicht');
+    assert.ok(einstellungen.rendern().html.includes('>Flickr</a>'), 'Einstellungen');
+  } finally {
+    delete BEISPIELBILDER['hs-chest-press'];
+  }
+});
+
 pruefe('Einstellungen listen Bildnachweise; Urheber wird maskiert', () => {
   BEISPIELBILDER['hs-chest-press'] = testBild('Max <b>Fett</b>');
   try {

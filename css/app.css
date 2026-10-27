@@ -1021,3 +1021,48 @@ textarea.notiz {
   font-weight: 600;
   box-shadow: var(--spur);
 }
+
+/* Gerätebild über die volle Kartenbreite (eigenes Gerätefoto oder Beispielbild).
+   Groß genug, um das Gerät im Studio aus der Hand wiederzuerkennen. */
+.karte-bild {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 190px;
+  margin: 0 0 12px;
+  padding: 0;
+  border: 2px solid var(--akzent);
+  border-radius: 12px;
+  background: var(--flaeche-2);
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Marke unten links: woher das Bild stammt. */
+.karte-bild::after {
+  content: 'Beispiel';
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.65);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.karte-bild[data-eigen]::after {
+  content: '📷 Dein Foto';
+}
+
+/* Ganzes Gerät zeigen statt beschneiden — gerade die Arme und Hebel machen es
+   unterscheidbar. Die schwarzen Ränder sind dafür der kleinere Preis. */
+.karte-bild img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  display: block;
+}
