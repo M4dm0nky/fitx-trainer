@@ -137,17 +137,27 @@ Press nahezu gleich aussehen.
 
 ### Erlaubt: frei lizenzierte Beispielbilder mit Nachweis
 
-Seit Oktober 2026 gibt es Beispielbilder von **Wikimedia Commons** (`bilder/`,
+Seit Oktober 2026 gibt es Beispielbilder von **Wikimedia Commons** und **Unsplash** (`bilder/`,
 Nachweise in `js/bilder.js`, sichtbar unter Einstellungen → Bildnachweise). Dafür gilt:
 
 - Nur **CC0, Public domain, CC BY, CC BY-SA**. Kein NC, kein ND, keine
   Herstellerbilder — auch nicht, wenn sie bei Commons liegen und die Lizenz unklar ist.
+- Zusätzlich die **Unsplash-Lizenz** (Eintrag `Unsplash-Lizenz`, Lizenz-Link
+  https://unsplash.com/license): keine CC-Lizenz, erlaubt aber die freie Nutzung auch in
+  Apps ohne Genehmigung des Fotografen. **Unsplash+** (Bezahlangebot) ist ausgeschlossen;
+  vor dem Eintrag auf der Fotoseite prüfen, dass dort „Free to use under the Unsplash
+  License" steht.
 - Jeder Eintrag braucht Urheber, Lizenz, Lizenz-Link und Commons-Seite. Der
   Logik-Test („jedes Beispielbild hat Nachweis …") prüft das samt Dateigröße.
 - **Jedes Bild von Hand prüfen:** Zeigt es genau diese Übung an genau dieser
   Geräteart? Lieber kein Bild als ein falsches — ein Kabelzug-Foto bei einer
-  Steckgewicht-Maschine unterläuft Regel 2. Von 47 Übungen hatten nur 14 ein Bild,
-  das diese Prüfung bestand; für Hammer-Strength-Geräte gibt es praktisch keine.
+  Steckgewicht-Maschine unterläuft Regel 2. Von 47 Übungen haben nur 28 ein Bild,
+  das diese Prüfung bestand. Mehrere Übungen dürfen dieselbe Datei nutzen.
+- **Gerätefoto statt Übungsfoto ist erlaubt**, wenn es ums Wiederfinden des Geräts geht
+  (z. B. ein Kabelzugturm für alle Kabelübungen, Flachbank mit Kurzhantel). Das Foto muss
+  dann zur Geräteart passen (Regel 2).
+- **Echte Hammer-Strength-Fotos fehlen weiterhin.** `hs-iso-row` zeigt nur eine allgemeine
+  Rudermaschine; die übrigen HS-Geräte haben kein Bild.
 - Für alle Übungen gibt es zusätzlich den Knopf „Bilder im Netz" (Google-Bildersuche,
   Suchbegriffe in `SUCHBEGRIFFE`). Die Suche zeigt fremde Bilder, legt aber keine ins Repo.
 

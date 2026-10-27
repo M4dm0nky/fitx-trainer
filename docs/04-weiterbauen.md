@@ -21,8 +21,8 @@ Am Rechner `http://localhost:8000` öffnen. Vom iPhone im selben WLAN über
 ## Tests
 
 ```powershell
-node test\logik.test.mjs        # 30 Prüfungen
-node test\ansichten.test.mjs    # 25 Prüfungen
+node test\logik.test.mjs        # 32 Prüfungen
+node test\ansichten.test.mjs    # 27 Prüfungen
 node test\fotos.test.mjs        # 13 Prüfungen
 node test\router.test.mjs       # 2 Prüfungen
 ```

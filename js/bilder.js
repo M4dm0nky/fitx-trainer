@@ -9,6 +9,8 @@
 // wenn die Lizenz frei ist (ERLAUBTE_LIZENZ) und Urheber, Lizenz und Quelle stimmen.
 // Der Logik-Test prüft das für jeden Eintrag.
 
+// Manche Bilder zeigen bewusst das GERÄT statt der Übung (Kabelzugturm für alle Kabelübungen,
+// Flachbank mit Kurzhantel), weil es ums Wiederfinden des Geräts im Studio geht.
 /** { [uebungId]: { datei, urheber, lizenz, lizenzUrl, quelle, quelleName? } } — quelle: https-Seite des Bilds (Commons, Flickr …) */
 export const BEISPIELBILDER = {
   'ab-crunch-maschine': {
@@ -32,12 +34,47 @@ export const BEISPIELBILDER = {
     lizenzUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
     quelle: 'https://commons.wikimedia.org/wiki/File:Pec_deck_Fly.jpg',
   },
+  'dips-station': {
+    datei: 'bilder/dips-station.jpg',
+    urheber: 'John Fornander',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/man-exercising-in-dip-station-dMWL8V7L8G4',
+  },
+  'face-pull': {
+    datei: 'bilder/kabelzugturm.jpg',
+    urheber: 'Stefan Vibes',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/cable-machine-in-gym-workspace-WFE0QrmLsMM',
+  },
+  'hs-iso-row': {
+    datei: 'bilder/hs-iso-row.jpg',
+    urheber: 'Stefan Vibes',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/seated-row-machine-in-gym-ktT4AX6j9uY',
+  },
   'hs-shoulder-press': {
     datei: 'bilder/hs-shoulder-press.jpg',
     urheber: 'Aliva Sahoo',
     lizenz: 'CC BY-SA 4.0',
     lizenzUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
     quelle: 'https://commons.wikimedia.org/wiki/File:Shoulder_Press.jpg',
+  },
+  'kabel-crunch': {
+    datei: 'bilder/kabelzugturm.jpg',
+    urheber: 'Stefan Vibes',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/cable-machine-in-gym-workspace-WFE0QrmLsMM',
+  },
+  'kabel-curl': {
+    datei: 'bilder/kabelzugturm.jpg',
+    urheber: 'Stefan Vibes',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/cable-machine-in-gym-workspace-WFE0QrmLsMM',
   },
   'kabel-fliegende': {
     datei: 'bilder/kabel-fliegende.jpg',
@@ -46,6 +83,20 @@ export const BEISPIELBILDER = {
     lizenzUrl: 'https://creativecommons.org/licenses/by/2.0',
     quelle: 'https://commons.wikimedia.org/wiki/File:Chest_flies_with_cable_machine_-_cable_crossover_flies.jpg',
   },
+  'kabel-seitheben': {
+    datei: 'bilder/kabelzugturm.jpg',
+    urheber: 'Stefan Vibes',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/cable-machine-in-gym-workspace-WFE0QrmLsMM',
+  },
+  'kabelrudern-hoch': {
+    datei: 'bilder/kabelzugturm.jpg',
+    urheber: 'Stefan Vibes',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/cable-machine-in-gym-workspace-WFE0QrmLsMM',
+  },
   'kabelrudern-sitzend': {
     datei: 'bilder/kabelrudern-sitzend.jpg',
     urheber: 'Everkinetic',
@@ -53,12 +104,33 @@ export const BEISPIELBILDER = {
     lizenzUrl: 'https://creativecommons.org/licenses/by-sa/3.0',
     quelle: 'https://commons.wikimedia.org/wiki/File:Cable-seated-rows-1.png',
   },
+  'kh-bankdruecken': {
+    datei: 'bilder/flachbank-kurzhantel.jpg',
+    urheber: 'Federico Faccipieri',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/a-man-doing-a-bench-press-with-a-dumbbell-fGAgXh6QQEU',
+  },
   'kh-curl': {
     datei: 'bilder/kh-curl.jpg',
     urheber: 'PTPioneer',
     lizenz: 'CC BY 2.0',
     lizenzUrl: 'https://creativecommons.org/licenses/by/2.0',
     quelle: 'https://commons.wikimedia.org/wiki/File:Dumbbell_bicep_curls.jpg',
+  },
+  'kh-fliegende': {
+    datei: 'bilder/flachbank-kurzhantel.jpg',
+    urheber: 'Federico Faccipieri',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/a-man-doing-a-bench-press-with-a-dumbbell-fGAgXh6QQEU',
+  },
+  'kh-rudern-einarmig': {
+    datei: 'bilder/flachbank-kurzhantel.jpg',
+    urheber: 'Federico Faccipieri',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/a-man-doing-a-bench-press-with-a-dumbbell-fGAgXh6QQEU',
   },
   'kh-schraegbankdruecken': {
     datei: 'bilder/kh-schraegbankdruecken.jpg',
@@ -102,12 +174,40 @@ export const BEISPIELBILDER = {
     lizenzUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
     quelle: 'https://commons.wikimedia.org/wiki/File:Amer-Lat-Pulldown.jpg',
   },
+  'latzug-eng': {
+    datei: 'bilder/latzug-eng.jpg',
+    urheber: 'Şule Makaroğlu',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/woman-in-black-sports-bra-exercising-using-lat-pull-down-machine-YFmvjO3TP_s',
+  },
+  'pallof-press': {
+    datei: 'bilder/kabelzugturm.jpg',
+    urheber: 'Stefan Vibes',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/cable-machine-in-gym-workspace-WFE0QrmLsMM',
+  },
   'side-plank': {
     datei: 'bilder/side-plank.jpg',
     urheber: 'Jaykayfit',
     lizenz: 'CC BY-SA 3.0',
     lizenzUrl: 'https://creativecommons.org/licenses/by-sa/3.0',
     quelle: 'https://commons.wikimedia.org/wiki/File:Side_Plank.jpg',
+  },
+  'sz-curl': {
+    datei: 'bilder/sz-curl.jpg',
+    urheber: 'Phil Robson',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/man-performs-bicep-curls-with-weights-in-the-gym-2OUQO77kGa0',
+  },
+  'trizeps-kabel': {
+    datei: 'bilder/kabelzugturm.jpg',
+    urheber: 'Stefan Vibes',
+    lizenz: 'Unsplash-Lizenz',
+    lizenzUrl: 'https://unsplash.com/license',
+    quelle: 'https://unsplash.com/photos/cable-machine-in-gym-workspace-WFE0QrmLsMM',
   },
 };
 
@@ -137,8 +237,12 @@ export const SUCHBEGRIFFE = {
   'kabel-crunch': 'Kabel Crunch kniend',
 };
 
-/** CC0, Public Domain, CC BY und CC BY-SA in jeder Version. Kein NC, kein ND. */
-export const ERLAUBTE_LIZENZ = /^(CC0|Public domain|CC BY(-SA)? [\d.]+)/i;
+/**
+ * CC0, Public Domain, CC BY und CC BY-SA in jeder Version. Kein NC, kein ND.
+ * Dazu 'Unsplash-Lizenz' (Unsplash License): keine CC-Lizenz, erlaubt aber freie Nutzung auch in
+ * Apps. Unsplash+ (Bezahlangebot) ist ausgeschlossen.
+ */
+export const ERLAUBTE_LIZENZ = /^(CC0|Public domain|Unsplash-Lizenz$|CC BY(-SA)? [\d.]+)/i;
 
 /**
  * Anzeigename der Bildquelle für den Linktext: explizites Feld quelleName, sonst aus
@@ -153,6 +257,7 @@ export function quelleName(bild) {
     return 'Quelle';
   }
   if (host === 'commons.wikimedia.org') return 'Wikimedia Commons';
+  if (host === 'unsplash.com' || host === 'www.unsplash.com') return 'Unsplash';
   if (host === 'flickr.com' || host === 'www.flickr.com') return 'Flickr';
   return host;
 }

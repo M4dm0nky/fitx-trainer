@@ -361,10 +361,10 @@ pruefe('jedes Beispielbild hat Nachweis, freie Lizenz und existierende, kleine D
 });
 
 pruefe('ERLAUBTE_LIZENZ lässt freie Lizenzen zu und lehnt NC/ND ab', () => {
-  for (const ok of ['CC0 1.0', 'Public domain', 'CC BY 2.0', 'CC BY-SA 4.0']) {
+  for (const ok of ['CC0 1.0', 'Public domain', 'CC BY 2.0', 'CC BY-SA 4.0', 'Unsplash-Lizenz']) {
     assert.ok(ERLAUBTE_LIZENZ.test(ok), `sollte erlaubt sein: ${ok}`);
   }
-  for (const nein of ['CC BY-NC 2.0', 'CC BY-ND 4.0', 'CC BY-NC-SA 3.0', 'All rights reserved']) {
+  for (const nein of ['CC BY-NC 2.0', 'CC BY-ND 4.0', 'CC BY-NC-SA 3.0', 'All rights reserved', 'Unsplash+', 'Unsplash+ License']) {
     assert.ok(!ERLAUBTE_LIZENZ.test(nein), `sollte verboten sein: ${nein}`);
   }
 });
@@ -374,6 +374,7 @@ pruefe('quelleName: Feld hat Vorrang, sonst aus dem Host abgeleitet', () => {
   assert.equal(q('https://commons.wikimedia.org/wiki/File:X.jpg'), 'Wikimedia Commons');
   assert.equal(q('https://www.flickr.com/photos/abc/123'), 'Flickr');
   assert.equal(q('https://flickr.com/photos/abc/123'), 'Flickr');
+  assert.equal(q('https://unsplash.com/photos/abc-123'), 'Unsplash');
   assert.equal(q('https://beispiel.example.org/bild.jpg'), 'beispiel.example.org');
   assert.equal(q('https://www.flickr.com/photos/abc/123', { quelleName: 'Eigener Name' }), 'Eigener Name');
 });
