@@ -14,8 +14,8 @@ Projekt kalt aufnimmst, fang hier an und lies dann [01-zweck-und-hintergrund.md]
 | **Live** | https://m4dm0nky.github.io/fitx-trainer/ |
 | **Repo** | https://github.com/M4dm0nky/fitx-trainer (öffentlich) |
 | **Lokal** | `C:\Dropbox\Incomming\github\fitx-trainer` |
-| **Umfang** | 15 JS-Module / ~2900 Zeilen, 3 Testdateien / ~670 Zeilen |
-| **Tests** | 55 grün — Logik 25, Ansichten 17, Fotos 13 |
+| **Umfang** | 15 JS-Module / ~2900 Zeilen, 4 Testdateien / ~740 Zeilen |
+| **Tests** | 62 grün — Logik 25, Ansichten 22, Fotos 13, Router 2 |
 | **Build** | keiner. Vanilla JS als ES-Module, GitHub Pages liefert die Dateien direkt aus |
 
 Alle Repos dieses Nutzers liegen unter `C:\Dropbox\Incomming\github\` — nicht im
@@ -59,7 +59,7 @@ Training alles weg.
 
 ## Was ungetestet ist
 
-**Wichtig für jeden, der hier weiterarbeitet.** Die 55 automatischen Tests laufen in
+**Wichtig für jeden, der hier weiterarbeitet.** Die 62 automatischen Tests laufen in
 Node, ohne Browser. Erstellt wurde die App von einem Agenten ohne Browser, ohne
 Kamera und ohne iPhone. Folgendes ist deshalb **nie in der echten Umgebung
 ausgeführt worden**:
@@ -97,6 +97,15 @@ nachsehen, bevor er in der Logik gräbt.
 **Keine bekannten Fehler.** Der letzte gefundene (`transaktion()` gab bei fehlendem
 Schlüssel das Anfrageobjekt statt `null` zurück) ist in `86fce37` behoben und durch
 Tests abgesichert.
+
+**Behoben (Fix: doppelte Handler):** Listener häuften sich am dauerhaften `#app`, ein
+Satz-Haken wurde dadurch sofort wieder abgewählt. `zeichnen()` erzeugt `#app` jetzt je
+Render frisch; abgesichert durch `test/router.test.mjs`.
+
+**Behoben (zweiter Fehler am Haken):** „erledigt" war aus den Wiederholungen abgeleitet;
+nach manueller Eingabe ließ sich der Satz nie abhaken. Jetzt explizites Feld `erledigt`
+je Satz der laufenden Einheit (Historie-Format unverändert); abgesichert durch
+`test/ansichten.test.mjs`.
 
 **Bewusst nicht gebaut:**
 

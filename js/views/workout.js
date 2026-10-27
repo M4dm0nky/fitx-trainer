@@ -92,8 +92,39 @@ function leererEintrag(slot) {
   return {
     slotId: slot.id,
     uebungId: slot.uebungId, // wird überschrieben, wenn du im Studio ausweichst
-    saetze: Array.from({ length: slot.saetze }, () => ({ gewicht: '', wdh: '', rir: '' })),
+    saetze: Array.from({ length: slot.saetze }, () => leererSatz()),
   };
+}
+
+function leererSatz() {
+  return { gewicht: '', wdh: '', rir: '', erledigt: false };
+}
+
+/**
+ * "Erledigt" ist ein eigenes Feld. Früher wurde es aus wdh abgeleitet — dann
+ * galt ein Satz schon beim Tippen der Wiederholungen als erledigt, und der erste
+ * Klick auf den Haken wählte ihn wieder ab. Einheiten aus der alten Version haben
+ * das Feld nicht; für sie gilt weiter die Ableitung.
+ */
+export function satzErledigt(satz) {
+  return satz.erledigt ?? Number(satz.wdh) > 0;
+}
+
+/**
+ * Haken setzen. feldwerte = Texte, wie sie (nach Platzhalter-Füllung) in den
+ * Feldern stehen. Ohne Wiederholungen gibt es nichts abzuhaken (false).
+ */
+export function satzAbhaken(satz, feldwerte) {
+  satz.gewicht = String(feldwerte.gewicht ?? '').trim();
+  satz.wdh = String(feldwerte.wdh ?? '').trim();
+  satz.rir = String(feldwerte.rir ?? '').trim();
+  satz.erledigt = Number(satz.wdh) > 0;
+  return satz.erledigt;
+}
+
+/** Haken entfernen; die eingetragenen Werte bleiben stehen. */
+export function satzAbwaehlen(satz) {
+  satz.erledigt = false;
 }
 
 function eintragZu(einheit, slotId) {
@@ -102,7 +133,7 @@ function eintragZu(einheit, slotId) {
 
 function gemachteSaetze(einheit) {
   return einheit.eintraege.reduce(
-    (n, e) => n + e.saetze.filter((x) => Number(x.wdh) > 0).length,
+    (n, e) => n + e.saetze.filter(satzErledigt).length,
     0
   );
 }
@@ -231,7 +262,7 @@ function satzRendern(slot, eintrag, satz, i, letzte, uebung) {
   const referenz = letzte?.saetze[Math.min(i, letzte.saetze.length - 1)] || null;
   const platzGewicht = referenz && Number(referenz.gewicht) ? zahlKurz(referenz.gewicht) : '';
   const platzWdh = referenz ? String(referenz.wdh) : '';
-  const erledigt = Number(satz.wdh) > 0;
+  const erledigt = satzErledigt(satz);
 
   const wert = (v) => (v === '' || v === null || v === undefined ? '' : esc(v));
 
@@ -385,9 +416,9 @@ function verdrahten(wurzel, zustand, plan, einheit, neuZeichnen) {
     const index = Number(zeile.dataset.satz);
     const satz = eintrag.saetze[index];
 
-    if (Number(satz.wdh) > 0) {
+    if (satzErledigt(satz)) {
       // Abwählen: Werte bleiben stehen, nur der Haken geht weg.
-      satz.wdh = '';
+      satzAbwaehlen(satz);
       zeile.classList.remove('satz-erledigt');
       knopf.textContent = '○';
       speichern();
@@ -396,13 +427,12 @@ function verdrahten(wurzel, zustand, plan, einheit, neuZeichnen) {
     }
 
     // Leere Felder aus dem Platzhalter füllen — genau der Fall "war wie letztes Mal".
+    const feldwerte = {};
     zeile.querySelectorAll('[data-feld]').forEach((f) => {
-      if (!f.value && f.placeholder) {
-        f.value = f.placeholder;
-        satz[f.dataset.feld] = f.placeholder;
-      }
+      if (!f.value && f.placeholder) f.value = f.placeholder;
+      feldwerte[f.dataset.feld] = f.value;
     });
-    if (!Number(satz.wdh)) {
+    if (!satzAbhaken(satz, feldwerte)) {
       zeile.querySelector('[data-feld="wdh"]').focus();
       return; // ohne Wiederholungen gibt es nichts abzuhaken
     }
@@ -429,7 +459,7 @@ function verdrahten(wurzel, zustand, plan, einheit, neuZeichnen) {
         // aber nur, wenn wirklich gewechselt wird.
         if (neueUebungId !== eintrag.uebungId) {
           eintrag.uebungId = neueUebungId;
-          eintrag.saetze = eintrag.saetze.map(() => ({ gewicht: '', wdh: '', rir: '' }));
+          eintrag.saetze = eintrag.saetze.map(() => leererSatz());
         }
         if (alsStandard) slot.uebungId = neueUebungId;
         speichern();
@@ -447,9 +477,15 @@ function verdrahten(wurzel, zustand, plan, einheit, neuZeichnen) {
     const offen = sollSaetze(plan) - gemacht;
     if (offen > 0 && !confirm(`${offen} Sätze sind noch offen. Trotzdem beenden?`)) return;
 
-    // Nur wirklich gemachte Sätze wandern in die Historie.
+    // Nur wirklich gemachte Sätze wandern in die Historie — ohne das
+    // erledigt-Feld, das gehört nur zur laufenden Einheit.
     einheit.eintraege = einheit.eintraege
-      .map((e) => ({ ...e, saetze: e.saetze.filter((x) => Number(x.wdh) > 0) }))
+      .map((e) => ({
+        ...e,
+        saetze: e.saetze
+          .filter((x) => satzErledigt(x) && Number(x.wdh) > 0)
+          .map(({ gewicht, wdh, rir }) => ({ gewicht, wdh, rir })),
+      }))
       .filter((e) => e.saetze.length);
     einheit.datum = new Date().toISOString();
 

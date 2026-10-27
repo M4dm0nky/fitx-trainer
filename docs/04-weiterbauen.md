@@ -22,8 +22,9 @@ Am Rechner `http://localhost:8000` öffnen. Vom iPhone im selben WLAN über
 
 ```powershell
 node test\logik.test.mjs        # 25 Prüfungen
-node test\ansichten.test.mjs    # 17 Prüfungen
+node test\ansichten.test.mjs    # 22 Prüfungen
 node test\fotos.test.mjs        # 13 Prüfungen
+node test\router.test.mjs       # 2 Prüfungen
 ```
 
 Keine Abhängigkeiten, kein `npm install` — reines Node.
@@ -35,6 +36,7 @@ Keine Abhängigkeiten, kein `npm install` — reines Node.
 | `logik` | Bibliothek (eindeutige IDs, gültige Muster, Erkennungstexte), Pläne (Satzzahlen, Wochenvolumen im Korridor, kein Beintraining), Plan-Wechsel, **Historie je Variante**, Formatierung |
 | `ansichten` | rendert jede Ansicht gegen einen simulierten Speicher — fängt Laufzeitfehler, die eine Syntaxprüfung nicht sieht. Prüft auch `inputmode`, RIR-Platzhalter und HTML-Maskierung |
 | `fotos` | Schlüsselbildung, Base64-Umwandlung, IndexedDB-Vertrag gegen eine Attrappe, Backup-Rundlauf |
+| `router` | Router (`js/app.js`): Nach mehreren Renders hängt genau ein `click`-Listener an `#app` |
 
 ### Was strukturell nicht abgedeckt werden kann
 
@@ -185,11 +187,30 @@ stehst").
 steht jetzt in `test/fotos.test.mjs`. Wenn eine Schnittstelle nicht testbar
 erscheint, lohnt die Frage, ob nicht wenigstens ihr *Vertrag* nachbildbar ist.
 
+## Fehlermuster: Listener häufen sich am dauerhaften `#app`
+
+Die Views hängen ihre Handler (`beiKlick`, `addEventListener`) an `#app` selbst. Blieb
+dieses Element über alle Renders dasselbe, kam bei jedem Zeichnen ein Listener dazu.
+Symptom: Ein Satz-Haken reagiert nicht oder setzt sich scheinbar von selbst zurück,
+weil der zweite Handler ihn sofort wieder abwählt. Fix: `zeichnen()` in `js/app.js`
+ersetzt `#app` bei jedem Render durch ein frisches Klon-Element (`cloneNode(false)`);
+die Listener der vorigen Ansicht gehen mit dem alten Element unter. Abgesichert durch
+`test/router.test.mjs`.
+
+**Zweiter, davon unabhängiger Fehler am selben Haken:** „erledigt" war aus `wdh`
+abgeleitet (`Number(satz.wdh) > 0`). Wer Wiederholungen selbst eintippte, hatte den Satz
+damit schon „erledigt"; der erste Klick auf den Haken wählte ihn ab (`wdh = ''`, Feld
+behielt den Wert) und ließ sich danach nie mehr abhaken. Jetzt hat jeder Satz der
+laufenden Einheit ein explizites Feld `erledigt`; `satzErledigt`, `satzAbhaken` und
+`satzAbwaehlen` in `js/views/workout.js` kapseln das (ohne Feld gilt für alte Einheiten
+die Ableitung). In die Historie wandern nur `{gewicht, wdh, rir}`. Abgesichert in
+`test/ansichten.test.mjs`.
+
 ---
 
 ## Vor dem Ausliefern
 
-- [ ] Alle drei Testdateien grün
+- [ ] Alle vier Testdateien grün
 - [ ] Zoom-Grep liefert nur Kommentare
 - [ ] Bei Planänderungen: Volumenrechnung geprüft (der Logik-Test macht das mit)
 - [ ] Bei neuen Übungen: `erkennung` ohne Ortsbehauptungen

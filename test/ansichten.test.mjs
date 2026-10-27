@@ -182,6 +182,46 @@ pruefe('nach dem Ausweichen erscheint die Warnung statt der 45 kg', () => {
   assert.ok(!ausschnitt.includes('45 kg'), 'Maschinengewicht darf hier NICHT stehen');
 });
 
+console.log('\n— Satz abhaken: "erledigt" ist ein eigenes Feld —');
+
+pruefe('getippte Wdh. machen den Satz nicht von selbst erledigt; Abhaken klappt', () => {
+  const satz = { gewicht: '40', wdh: '10', rir: '', erledigt: false };
+  assert.equal(training.satzErledigt(satz), false);
+  assert.equal(training.satzAbhaken(satz, { gewicht: '40', wdh: '10', rir: '' }), true);
+  assert.equal(satz.erledigt, true);
+  assert.equal(training.satzErledigt(satz), true);
+});
+
+pruefe('Abwählen lässt die Werte stehen, erneutes Abhaken klappt (kein Festhängen)', () => {
+  const satz = { gewicht: '40', wdh: '10', rir: '2', erledigt: true };
+  training.satzAbwaehlen(satz);
+  assert.equal(satz.erledigt, false);
+  assert.equal(satz.wdh, '10');
+  assert.equal(training.satzAbhaken(satz, { gewicht: '40', wdh: '10', rir: '2' }), true);
+  assert.equal(satz.erledigt, true);
+});
+
+pruefe('ohne Wiederholungen lässt sich nichts abhaken', () => {
+  const satz = { gewicht: '40', wdh: '', rir: '', erledigt: false };
+  assert.equal(training.satzAbhaken(satz, { gewicht: '40', wdh: ' ', rir: '' }), false);
+  assert.equal(satz.erledigt, false);
+});
+
+pruefe('alter Satz ohne erledigt-Feld gilt mit Wdh. als erledigt', () => {
+  assert.equal(training.satzErledigt({ gewicht: '', wdh: '8', rir: '' }), true);
+  assert.equal(training.satzErledigt({ gewicht: '', wdh: '', rir: '' }), false);
+});
+
+pruefe('Rendern: Satz mit Wdh. aber erledigt:false ist nicht abgehakt', () => {
+  const e = zustand.laufend.eintraege.find((x) => x.slotId === 'a1');
+  e.saetze[0] = { gewicht: '40', wdh: '10', rir: '', erledigt: false };
+  let a = training.rendern('plan-a');
+  assert.ok(!a.html.includes('satz-erledigt'), 'getippte Wdh. dürfen nicht abhaken');
+  e.saetze[0].erledigt = true;
+  a = training.rendern('plan-a');
+  assert.ok(a.html.includes('satz-erledigt'), 'erledigt:true muss abgehakt zeigen');
+});
+
 console.log('\n— HTML-Maskierung —');
 
 pruefe('Übungsnamen mit Sonderzeichen zerlegen die Seite nicht', () => {

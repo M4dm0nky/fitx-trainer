@@ -12,7 +12,7 @@ import * as planEditor from './views/planEditor.js';
 import * as verlaufAnsicht from './views/exerciseHistory.js';
 import * as einstellungen from './views/settings.js';
 
-const app = document.getElementById('app');
+let app = document.getElementById('app');
 const titel = document.getElementById('titel');
 const kopfAktion = document.getElementById('kopf-aktion');
 
@@ -58,7 +58,13 @@ function zeichnen(positionHalten = false) {
 
   titel.innerHTML = ansicht.titel ?? 'FitX Trainer';
   kopfAktion.innerHTML = ansicht.kopfAktion ?? '';
-  app.innerHTML = ansicht.html ?? '';
+  // Frisches #app-Element je Render: Die Views hängen ihre Handler an #app
+  // selbst. Bliebe es dasselbe Element, häuften sich die Listener, und ein
+  // zweiter Handler würde z. B. den Satz-Haken sofort wieder abwählen.
+  const neu = app.cloneNode(false);
+  neu.innerHTML = ansicht.html ?? '';
+  app.replaceWith(neu);
+  app = neu;
   ansicht.nachRender?.(app, () => zeichnen(true));
 
   window.scrollTo(0, positionHalten ? y : 0);
